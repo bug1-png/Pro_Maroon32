@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maroon Sales Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF6F4;
+    --surface:#FFFFFF;
+    --surface-2:#F4ECEA;
+    --border:#E8DCDA;
+    --ink:#241316;
+    --ink-soft:#7C6367;
+    --ink-faint:#A78E92;
+    --accent:#8C2F3B;
+    --accent-strong:#6B1F29;
+    --accent-soft:#F6E5E7;
+    --accent-contrast:#FFFFFF;
+
+    --ok:#237A50;      --ok-bg:#E4F3EA;
+    --vip:#0E7268;     --vip-bg:#DEF2EF;
+    --warn:#A96A08;    --warn-bg:#FBEDD8;
+    --info:#2158A0;    --info-bg:#E6EFFB;
+    --muted:#5E5B62;   --muted-bg:#ECEAEC;
+    --danger:#A6293B;  --danger-bg:#FAE6E9;
+    --special:#5B4B8A; --special-bg:#ECE7F5;
+
+    --shadow: 0 1px 2px rgba(36,19,22,.06), 0 6px 20px -8px rgba(36,19,22,.18);
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1A1214;
+      --surface:#231619;
+      --surface-2:#2C1B1F;
+      --border:#3C272B;
+      --ink:#F4E9EA;
+      --ink-soft:#C6ADB1;
+      --ink-faint:#8C7276;
+      --accent:#E68C99;
+      --accent-strong:#F2AAB4;
+      --accent-soft:#3A2226;
+      --accent-contrast:#2A1417;
+
+      --ok:#6BD79B;      --ok-bg:#163826;
+      --vip:#5FDCCF;     --vip-bg:#0F3733;
+      --warn:#F0B85B;    --warn-bg:#3A2C12;
+      --info:#8FB8F2;    --info-bg:#1C2C45;
+      --muted:#C3C0C7;   --muted-bg:#2C2A2F;
+      --danger:#F2939F;  --danger-bg:#3A1D22;
+      --special:#BDACEF; --special-bg:#2A2340;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 24px -10px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1A1214;
+    --surface:#231619;
+    --surface-2:#2C1B1F;
+    --border:#3C272B;
+    --ink:#F4E9EA;
+    --ink-soft:#C6ADB1;
+    --ink-faint:#8C7276;
+    --accent:#E68C99;
+    --accent-strong:#F2AAB4;
+    --accent-soft:#3A2226;
+    --accent-contrast:#2A1417;
+
+    --ok:#6BD79B;      --ok-bg:#163826;
+    --vip:#5FDCCF;     --vip-bg:#0F3733;
+    --warn:#F0B85B;    --warn-bg:#3A2C12;
+    --info:#8FB8F2;    --info-bg:#1C2C45;
+    --muted:#C3C0C7;   --muted-bg:#2C2A2F;
+    --danger:#F2939F;  --danger-bg:#3A1D22;
+    --special:#BDACEF; --special-bg:#2A2340;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 24px -10px rgba(0,0,0,.55);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans Thai','IBM Plex Sans',system-ui,sans-serif;
+    padding-inline:0;
+  }
+  h1,h2,h3,.font-display{ font-family:'Noto Serif Thai','Noto Serif',serif; }
+  .num{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric: tabular-nums; }
+  ::selection{ background:var(--accent-soft); color:var(--accent-strong); }
+
+  /* ---------- layout shell ---------- */
+  .app{ max-width:720px; margin-inline:auto; padding-inline:16px; }
+
+  .topbar{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:30;
+    background:linear-gradient(180deg,var(--bg) 82%, transparent);
+    padding-top:14px;
+  }
+  .brandrow{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .brand{ display:flex; align-items:baseline; gap:8px; }
+  .brand h1{ font-size:22px; font-weight:700; margin:0; letter-spacing:.2px; color:var(--ink); }
+  .brand span.tag{ font-size:11px; font-weight:600; color:var(--accent); background:var(--accent-soft); border-radius:999px; padding:3px 9px; letter-spacing:.03em; }
+  .updated{
+    flex:none; display:flex; align-items:center; gap:5px;
+    font-size:10px; line-height:1.35; color:var(--ink-faint); text-align:right;
+  }
+  .updated svg{ flex:none; opacity:.7; }
+  .updated b{ color:var(--ink-soft); font-weight:600; }
+  .subline{ font-size:12.5px; color:var(--ink-soft); margin:2px 0 12px; }
+  .subline b{ color:var(--ink); font-weight:600; }
+
+  .search-row{ display:flex; gap:8px; margin-bottom:10px; }
+  .search-box{
+    flex:1; display:flex; align-items:center; gap:8px;
+    background:var(--surface); border:1px solid var(--border); border-radius:999px;
+    padding:9px 14px; box-shadow:var(--shadow);
+  }
+  .search-box svg{ flex:none; opacity:.55; }
+  .search-box input{
+    border:none; outline:none; background:transparent; color:var(--ink);
+    font:inherit; font-size:14px; width:100%;
+  }
+  .search-box input::placeholder{ color:var(--ink-faint); }
+  .search-box button.clear{
+    flex:none; border:none; background:none; color:var(--ink-faint); padding:2px;
+    display:flex; cursor:pointer;
+  }
+  .filter-btn{
+    flex:none; display:flex; align-items:center; gap:6px;
+    background:var(--surface); border:1px solid var(--border); border-radius:999px;
+    padding:9px 14px; font-size:13.5px; font-weight:600; color:var(--ink);
+    box-shadow:var(--shadow); position:relative; cursor:pointer;
+  }
+  .filter-btn .dot{
+    position:absolute; top:-3px; right:-3px; width:9px; height:9px; border-radius:50%;
+    background:var(--accent); border:2px solid var(--bg); display:none;
+  }
+  .filter-btn.active .dot{ display:block; }
+
+  .chipbar{
+    display:flex; gap:7px; overflow-x:auto; padding-bottom:12px; margin:0 -16px 4px; padding-inline:16px;
+    scrollbar-width:none;
+  }
+  .chipbar::-webkit-scrollbar{ display:none; }
+  .chip{
+    flex:none; font-size:13px; font-weight:600; color:var(--ink-soft);
+    background:var(--surface); border:1px solid var(--border); border-radius:999px;
+    padding:7px 13px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px;
+    transition:background .15s,color .15s,border-color .15s;
+  }
+  .chip .n{ font-size:11px; font-weight:600; opacity:.75; }
+  .chip[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:var(--accent-contrast); }
+  .chip[aria-pressed="true"] .n{ opacity:.85; }
+
+  .summary{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:12.5px; color:var(--ink-soft); padding:2px 2px 10px;
+  }
+  .summary b{ color:var(--ink); font-weight:700; }
+  .sort-inline{ display:flex; align-items:center; gap:5px; color:var(--ink-soft); font-weight:600; }
+  .sort-inline select{
+    border:none; background:transparent; color:var(--ink); font:inherit; font-weight:600; font-size:12.5px;
+  }
+
+  /* ---------- room list ---------- */
+  .list{ display:flex; flex-direction:column; gap:10px; padding-bottom:36px; }
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .card-head{
+    display:flex; align-items:center; gap:12px; padding:13px 14px; cursor:pointer;
+  }
+  .unit-id{ flex:none; width:60px; text-align:center; }
+  .unit-id .house{ font-size:14px; font-weight:700; font-family:'IBM Plex Mono',monospace; color:var(--ink); line-height:1.15; }
+  .unit-id .loc{ font-size:10.5px; color:var(--ink-soft); margin-top:2px; }
+
+  .unit-mid{ flex:1; min-width:0; }
+  .unit-mid .row1{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .unit-mid .type{ font-size:13.5px; font-weight:700; color:var(--ink); }
+  .unit-mid .plan{ font-size:11px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; }
+  .unit-mid .row2{ font-size:12px; color:var(--ink-soft); margin-top:3px; display:flex; gap:8px; flex-wrap:wrap; }
+
+  .badge{
+    font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap;
+    letter-spacing:.01em;
+  }
+
+  .unit-price{ flex:none; text-align:right; }
+  .unit-price .final{ font-size:16px; font-weight:700; color:var(--accent-strong); }
+  .unit-price .net{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+
+  .chev{ flex:none; width:18px; height:18px; color:var(--ink-faint); transition:transform .22s ease; }
+  .card[data-open="true"] .chev{ transform:rotate(180deg); }
+
+  .card-detail{
+    display:grid; grid-template-rows:0fr; transition:grid-template-rows .25s ease;
+  }
+  .card[data-open="true"] .card-detail{ grid-template-rows:1fr; }
+  .card-detail > div{ overflow:hidden; }
+  .detail-inner{ padding:2px 14px 16px; border-top:1px dashed var(--border); margin-top:2px; }
+
+  .ladder{ padding-top:12px; display:flex; flex-direction:column; gap:6px; }
+  .ladder .li{ display:flex; justify-content:space-between; align-items:baseline; font-size:12.5px; gap:10px; }
+  .ladder .li .k{ color:var(--ink-soft); }
+  .ladder .li .v{ font-weight:600; color:var(--ink); flex:none; }
+  .ladder .li.sub .k{ padding-left:12px; color:var(--ink-faint); }
+  .ladder .li.sub .v{ color:var(--ink-soft); font-weight:500; }
+  .ladder .li.neg .v::before{ content:"\2212 "; }
+  .ladder .li.subtotal .k, .ladder .li.subtotal .v{ font-weight:700; color:var(--ink-soft); }
+  .ladder hr{ border:none; border-top:1px solid var(--border); margin:2px 0; }
+  .ladder .li.total .k, .ladder .li.total .v{ font-weight:700; color:var(--ink); font-size:13.5px; }
+  .ladder .col-tag{ font-size:10px; color:var(--ink-faint); font-weight:500; }
+
+  .sales-note{
+    margin-top:10px; background:var(--surface-2); border-radius:var(--radius-md);
+    padding:10px 12px; display:flex; gap:8px; align-items:flex-start;
+  }
+  .sales-note svg{ flex:none; color:var(--accent); margin-top:1px; }
+  .sales-note .txt{ font-size:11.5px; color:var(--ink-soft); line-height:1.5; }
+  .sales-note .txt b{ color:var(--ink); }
+
+  .final-net{
+    margin-top:10px; background:var(--accent-soft); border-radius:var(--radius-md);
+    padding:11px 13px; display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .final-net .lab{ font-size:11.5px; font-weight:600; color:var(--accent-strong); }
+  .final-net .lab small{ display:block; font-weight:500; font-size:10px; color:var(--ink-soft); margin-top:1px; }
+  .final-net .amt{ font-size:19px; font-weight:700; color:var(--accent-strong); }
+
+  .empty{ text-align:center; padding:54px 20px; color:var(--ink-soft); }
+  .empty svg{ opacity:.4; margin-bottom:12px; }
+  .empty h3{ font-size:16px; color:var(--ink); margin:0 0 6px; }
+  .empty p{ font-size:13px; margin:0 0 14px; line-height:1.6; }
+  .empty button.btn-ghost-2{
+    border:1px solid var(--border); background:var(--surface); color:var(--ink); font:inherit; font-weight:600;
+    font-size:13px; padding:8px 16px; border-radius:999px; cursor:pointer;
+  }
+  .empty button.link-btn{
+    border:none; background:none; color:var(--accent); font:inherit; font-weight:700;
+    font-size:13px; text-decoration:underline; cursor:pointer; padding:4px;
+  }
+
+  /* ---------- filter sheet ---------- */
+  .scrim{
+    position:fixed; inset:0; background:rgba(20,10,12,.42); backdrop-filter:blur(1px);
+    opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:40;
+  }
+  .scrim[data-show="true"]{ opacity:1; pointer-events:auto; }
+
+  .sheet{
+    position:fixed; left:0; right:0; bottom:0; z-index:41;
+    background:var(--surface); border-radius:20px 20px 0 0;
+    box-shadow:0 -10px 40px rgba(0,0,0,.25);
+    max-height:min(84vh, 720px); display:flex; flex-direction:column;
+    transform:translateY(102%); transition:transform .28s cubic-bezier(.32,.72,0,1);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  .sheet[data-show="true"]{ transform:translateY(0); }
+  .sheet-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px 8px; flex:none;
+  }
+  .sheet-head .bar{ position:absolute; left:50%; top:8px; transform:translateX(-50%); width:36px; height:4px; border-radius:99px; background:var(--border); }
+  .sheet-head h2{ font-size:16px; margin:0; }
+  .sheet-head button{ border:none; background:none; color:var(--ink-soft); font:inherit; font-weight:600; font-size:13px; cursor:pointer; }
+  .sheet-body{ overflow-y:auto; padding:6px 18px 18px; display:flex; flex-direction:column; gap:20px; }
+
+  .fgroup h3{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft);
+    margin:0 0 9px;
+  }
+  .fgrid{ display:flex; flex-wrap:wrap; gap:7px; }
+  .fchip{
+    font-size:13px; font-weight:600; color:var(--ink); background:var(--surface-2); border:1px solid transparent;
+    border-radius:10px; padding:7px 12px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  }
+  .fchip[aria-pressed="true"]{ background:var(--accent); color:var(--accent-contrast); }
+  .fchip.status-chip[aria-pressed="true"]{ background:var(--sc,var(--accent)); color:#fff; }
+  .fchip .n{ font-size:10.5px; opacity:.7; }
+
+  .range-wrap{ padding:6px 4px 0; }
+  .range-vals{ display:flex; justify-content:space-between; font-size:13px; font-weight:700; margin-bottom:8px; font-family:'IBM Plex Mono',monospace; }
+  .range-track{ position:relative; height:34px; }
+  .range-track .rail{ position:absolute; top:15px; left:0; right:0; height:4px; border-radius:99px; background:var(--border); }
+  .range-track .fill{ position:absolute; top:15px; height:4px; border-radius:99px; background:var(--accent); }
+  .range-track input[type=range]{
+    position:absolute; top:0; left:0; width:100%; margin:0; height:34px; background:none;
+    -webkit-appearance:none; appearance:none; pointer-events:none;
+  }
+  .range-track input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; pointer-events:auto; width:20px; height:20px; border-radius:50%;
+    background:var(--surface); border:3px solid var(--accent); box-shadow:var(--shadow); cursor:grab; margin-top:0;
+  }
+  .range-track input[type=range]::-moz-range-thumb{
+    pointer-events:auto; width:20px; height:20px; border-radius:50%;
+    background:var(--surface); border:3px solid var(--accent); box-shadow:var(--shadow); cursor:grab;
+  }
+  .range-track input[type=range]::-webkit-slider-runnable-track{ background:transparent; }
+  .range-track input[type=range]::-moz-range-track{ background:transparent; }
+
+  .sheet-foot{
+    flex:none; display:flex; gap:10px; padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));
+    border-top:1px solid var(--border);
+  }
+  .btn-ghost{
+    flex:none; border:1px solid var(--border); background:var(--surface); color:var(--ink);
+    font:inherit; font-weight:600; font-size:13.5px; padding:12px 16px; border-radius:12px; cursor:pointer;
+  }
+  .btn-solid{
+    flex:1; border:none; background:var(--accent); color:var(--accent-contrast);
+    font:inherit; font-weight:700; font-size:14px; padding:12px 16px; border-radius:12px; cursor:pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .card-detail, .chev, .sheet{ transition:none !important; }
+  }
+
+  @media (min-width:600px){
+    .list{ display:grid; grid-template-columns:1fr 1fr; }
+  }
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brandrow">
+      <div class="brand">
+        <h1>MAROON</h1>
+        <span class="tag">Pricelist 2026</span>
+      </div>
+      <div class="updated">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>อัปเดตข้อมูล<br><b>20 ก.ย. 2569</b></span>
+      </div>
+    </div>
+    <p class="subline">ห้องว่างพร้อมขาย <b id="statAvail">-</b> จากทั้งหมด <b id="statTotal">-</b> ยูนิต · อัปเดตราคา ณ ปีบัญชี 2026</p>
+
+    <div class="search-row">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="searchInput" type="text" inputmode="search" placeholder="พิมพ์บ้านเลขที่ หรือเลขที่แปลงเพื่อค้นหา">
+        <button class="clear" id="clearSearch" type="button" hidden aria-label="ล้างคำค้นหา">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <button class="filter-btn" id="openFilter" aria-haspopup="dialog">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        ตัวกรอง<span class="dot"></span>
+      </button>
+    </div>
+
+    <div class="chipbar" id="quickChips"></div>
+  </div>
+
+  <div class="summary">
+    <span>พบ <b id="resultCount">-</b> ห้อง</span>
+    <span class="sort-inline">
+      เรียงตาม
+      <select id="sortSelect">
+        <option value="default">ลำดับแปลง</option>
+        <option value="price-asc">ราคาต่ำ → สูง</option>
+        <option value="price-desc">ราคาสูง → ต่ำ</option>
+        <option value="floor-asc">ชั้นน้อย → มาก</option>
+        <option value="floor-desc">ชั้นมาก → น้อย</option>
+        <option value="area-desc">พื้นที่มาก → น้อย</option>
+      </select>
+    </span>
+  </div>
+
+  <div class="list" id="roomList"></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="filterSheet" role="dialog" aria-label="ตัวกรอง">
+  <div class="sheet-head">
+    <span class="bar"></span>
+    <h2>ตัวกรองห้อง</h2>
+    <button id="resetFilters" type="button">ล้างทั้งหมด</button>
+  </div>
+  <div class="sheet-body">
+    <div class="fgroup">
+      <h3>ตึก</h3>
+      <div class="fgrid" id="fTower"></div>
+    </div>
+    <div class="fgroup">
+      <h3>ชั้น</h3>
+      <div class="fgrid" id="fFloor"></div>
+    </div>
+    <div class="fgroup">
+      <h3>สถานะห้อง</h3>
+      <div class="fgrid" id="fStatus"></div>
+    </div>
+    <div class="fgroup">
+      <h3>ประเภทห้อง</h3>
+      <div class="fgrid" id="fType"></div>
+    </div>
+    <div class="fgroup">
+      <h3>วิว</h3>
+      <div class="fgrid" id="fView"></div>
+    </div>
+    <div class="fgroup">
+      <h3>ทิศ</h3>
+      <div class="fgrid" id="fDir"></div>
+    </div>
+    <div class="fgroup">
+      <h3>ช่วงราคา Net สุดท้าย (บาท)</h3>
+      <div class="range-wrap">
+        <div class="range-vals"><span id="priceMinLabel">-</span><span id="priceMaxLabel">-</span></div>
+        <div class="range-track">
+          <div class="rail"></div>
+          <div class="fill" id="rangeFill"></div>
+          <input type="range" id="priceMin">
+          <input type="range" id="priceMax">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-foot">
+    <button class="btn-ghost" id="closeFilter" type="button">ปิด</button>
+    <button class="btn-solid" id="applyFilter" type="button">แสดงผล <span id="applyCount">-</span> ห้อง</button>
+  </div>
+</div>
+
+<script id="room-data" type="application/json">
+[{"no":1,"plot":"A0202","house":"53/2","tower":"A","floor":"2","pos":"02","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-05S","area":28.35,"statusBK":"ห้องว่าง","status":"ห้องตัวอย่าง","listPrice":3267000,"pro1":200000,"pro2":196020,"pro3":50000,"proTotal":446020,"netAfterPro":2820980,"freeTransferValue":42993,"onHand1":32670,"onHand2":24504,"onHandTotal":57174,"totalDiscount":546187,"finalNet":2720813},{"no":2,"plot":"A0204","house":"53/4","tower":"A","floor":"2","pos":"04","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03M","area":24.62,"statusBK":"ห้องว่าง","status":"ห้องตัวอย่าง","listPrice":2782000,"pro1":200000,"pro2":166920,"pro3":50000,"proTotal":416920,"netAfterPro":2365080,"freeTransferValue":37754,"onHand1":27820,"onHand2":21276,"onHandTotal":49096,"totalDiscount":503770,"finalNet":2278230},{"no":3,"plot":"A0205","house":"53/5","tower":"A","floor":"2","pos":"05","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-06S","area":28.72,"statusBK":"ห้องว่าง","status":"จอง","listPrice":3024000,"pro1":200000,"pro2":181440,"pro3":50000,"proTotal":431440,"netAfterPro":2592560,"freeTransferValue":43475,"onHand1":30240,"onHand2":24816,"onHandTotal":55056,"totalDiscount":529971,"finalNet":2494029},{"no":4,"plot":"A0207","house":"53/7","tower":"A","floor":"2","pos":"07","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2819000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2619000,"freeTransferValue":50000,"onHand1":28190,"onHand2":23196,"onHandTotal":51386,"totalDiscount":301386,"finalNet":2517614},{"no":5,"plot":"A0209","house":"53/9","tower":"A","floor":"2","pos":"09","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2882000,"pro1":200000,"pro2":172920,"pro3":50000,"proTotal":422920,"netAfterPro":2459080,"freeTransferValue":40852,"onHand1":28820,"onHand2":23196,"onHandTotal":52016,"totalDiscount":515788,"finalNet":2366212},{"no":6,"plot":"A0211","house":"53/11","tower":"A","floor":"2","pos":"11","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2882000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2682000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2632000},{"no":7,"plot":"A0212","house":"53/12","tower":"A","floor":"2","pos":"12","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2462000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2262000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2212000},{"no":8,"plot":"A0213","house":"53/13","tower":"A","floor":"2","pos":"13","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2882000,"pro1":200000,"pro2":172920,"pro3":50000,"proTotal":422920,"netAfterPro":2459080,"freeTransferValue":40852,"onHand1":28820,"onHand2":23196,"onHandTotal":52016,"totalDiscount":515788,"finalNet":2366212},{"no":9,"plot":"A0215","house":"53/15","tower":"A","floor":"2","pos":"15","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2882000,"pro1":200000,"pro2":172920,"pro3":50000,"proTotal":422920,"netAfterPro":2459080,"freeTransferValue":40852,"onHand1":28820,"onHand2":23196,"onHandTotal":52016,"totalDiscount":515788,"finalNet":2366212},{"no":10,"plot":"A0217","house":"53/17","tower":"A","floor":"2","pos":"17","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2882000,"pro1":200000,"pro2":172920,"pro3":50000,"proTotal":422920,"netAfterPro":2459080,"freeTransferValue":40852,"onHand1":28820,"onHand2":23196,"onHandTotal":52016,"totalDiscount":515788,"finalNet":2366212},{"no":11,"plot":"A0220","house":"53/20","tower":"A","floor":"2","pos":"20","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01M","area":26.5,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2787000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2587000,"freeTransferValue":50000,"onHand1":27870,"onHand2":22896,"onHandTotal":50766,"totalDiscount":300766,"finalNet":2486234},{"no":12,"plot":"A0221","house":"53/21","tower":"A","floor":"2","pos":"21","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-06S","area":27.17,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2852000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2652000,"freeTransferValue":50000,"onHand1":28520,"onHand2":23484,"onHandTotal":52004,"totalDiscount":302004,"finalNet":2549996},{"no":13,"plot":"A0223","house":"53/22","tower":"A","floor":"2","pos":"23","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-09S","area":28.83,"statusBK":"ห้องว่าง","status":"ห้องตัวอย่าง","listPrice":3143000,"pro1":200000,"pro2":188580,"pro3":50000,"proTotal":438580,"netAfterPro":2704420,"freeTransferValue":43641,"onHand1":31430,"onHand2":24912,"onHandTotal":56342,"totalDiscount":538563,"finalNet":2604437},{"no":14,"plot":"A0225","house":"53/24","tower":"A","floor":"2","pos":"25","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07M","area":28.1,"statusBK":"ห้องว่าง","status":"ห้องเซลล์","listPrice":3197000,"pro1":200000,"pro2":191820,"pro3":50000,"proTotal":441820,"netAfterPro":2755180,"freeTransferValue":42638,"onHand1":31970,"onHand2":24288,"onHandTotal":56258,"totalDiscount":540716,"finalNet":2656284},{"no":15,"plot":"A0226","house":"53/25","tower":"A","floor":"2","pos":"26","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ห้องว่าง","status":"จอง","listPrice":3197000,"pro1":200000,"pro2":191820,"pro3":50000,"proTotal":441820,"netAfterPro":2755180,"freeTransferValue":42638,"onHand1":31970,"onHand2":24288,"onHandTotal":56258,"totalDiscount":540716,"finalNet":2656284},{"no":16,"plot":"A0227","house":"53/26","tower":"A","floor":"2","pos":"27","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.95,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":4115000,"pro1":500000,"pro2":null,"pro3":null,"proTotal":500000,"netAfterPro":3615000,"freeTransferValue":50000,"onHand1":41150,"onHand2":30204,"onHandTotal":71354,"totalDiscount":621354,"finalNet":3493646},{"no":17,"plot":"A0228","house":"53/27","tower":"A","floor":"2","pos":"28","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01M","area":34.94,"statusBK":"ห้องว่าง","status":"ห้องตัวอย่าง","listPrice":4269000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3719000,"freeTransferValue":52247,"onHand1":42690,"onHand2":30192,"onHandTotal":72882,"totalDiscount":675129,"finalNet":3593871},{"no":18,"plot":"A0229","house":"53/28","tower":"A","floor":"2","pos":"29","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.95,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4115000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3565000,"freeTransferValue":52249,"onHand1":41150,"onHand2":30204,"onHandTotal":71354,"totalDiscount":673603,"finalNet":3441397},{"no":19,"plot":"A0230","house":"53/29","tower":"A","floor":"2","pos":"30","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-04S","area":27.52,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3132000,"pro1":200000,"pro2":187920,"pro3":50000,"proTotal":437920,"netAfterPro":2694080,"freeTransferValue":41823,"onHand1":31320,"onHand2":23784,"onHandTotal":55104,"totalDiscount":534847,"finalNet":2597153},{"no":20,"plot":"A0232","house":"53/31","tower":"A","floor":"2","pos":"32","view":"ใน","dir":"ใต้","type":"1BR Extra","plan":"C1-01S","area":28.94,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3337000,"pro1":300000,"pro2":200220,"pro3":50000,"proTotal":550220,"netAfterPro":2786780,"freeTransferValue":43814,"onHand1":31320,"onHand2":25008,"onHandTotal":56328,"totalDiscount":650362,"finalNet":2686638},{"no":21,"plot":"A0233","house":"53/32","tower":"A","floor":"2","pos":"33","view":"ใน","dir":"ใต้","type":"1BR Plus","plan":"D3-01S","area":35.13,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4365000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3815000,"freeTransferValue":52525,"onHand1":31320,"onHand2":30360,"onHandTotal":61680,"totalDiscount":664205,"finalNet":3700795},{"no":22,"plot":"A0302","house":"53/34","tower":"A","floor":"3","pos":"02","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-05S","area":28.35,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":3114000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2914000,"freeTransferValue":50000,"onHand1":31320,"onHand2":24504,"onHandTotal":55824,"totalDiscount":305824,"finalNet":2808176},{"no":23,"plot":"A0303","house":"53/35","tower":"A","floor":"3","pos":"03","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03S","area":24.62,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2707000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2507000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2457000},{"no":24,"plot":"A0304","house":"53/36","tower":"A","floor":"3","pos":"04","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03M","area":24.62,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2707000,"pro1":200000,"pro2":162420,"pro3":50000,"proTotal":412420,"netAfterPro":2294580,"freeTransferValue":37747,"onHand1":31320,"onHand2":21276,"onHandTotal":52596,"totalDiscount":502763,"finalNet":2204237},{"no":25,"plot":"A0305","house":"53/37","tower":"A","floor":"3","pos":"05","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-06S","area":28.72,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3095000,"pro1":200000,"pro2":185700,"pro3":50000,"proTotal":435700,"netAfterPro":2659300,"freeTransferValue":43482,"onHand1":31320,"onHand2":24816,"onHandTotal":56136,"totalDiscount":535318,"finalNet":2559682},{"no":26,"plot":"A0306","house":"53/38","tower":"A","floor":"3","pos":"06","view":"นอก","dir":"ตะวันออก","type":"1BR Extra","plan":"C2-01S","area":29.96,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":3228000,"pro1":300000,"pro2":null,"pro3":null,"proTotal":300000,"netAfterPro":2928000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":350000,"finalNet":2878000},{"no":27,"plot":"A0307","house":"53/39","tower":"A","floor":"3","pos":"07","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"สัญญา","status":"ยังไม่โอน","listPrice":2887000,"pro1":200000,"pro2":173220,"pro3":50000,"proTotal":423220,"netAfterPro":2463780,"freeTransferValue":40853,"onHand1":31320,"onHand2":23196,"onHandTotal":54516,"totalDiscount":518589,"finalNet":2368411},{"no":28,"plot":"A0309","house":"53/41","tower":"A","floor":"3","pos":"09","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2949000,"pro1":200000,"pro2":176940,"pro3":50000,"proTotal":426940,"netAfterPro":2522060,"freeTransferValue":40859,"onHand1":31320,"onHand2":23196,"onHandTotal":54516,"totalDiscount":522315,"finalNet":2426685},{"no":29,"plot":"A0310","house":"53/42","tower":"A","floor":"3","pos":"10","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2462000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2262000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2212000},{"no":30,"plot":"A0313","house":"53/45","tower":"A","floor":"3","pos":"13","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2949000,"pro1":200000,"pro2":176940,"pro3":50000,"proTotal":426940,"netAfterPro":2522060,"freeTransferValue":40859,"onHand1":31320,"onHand2":23196,"onHandTotal":54516,"totalDiscount":522315,"finalNet":2426685},{"no":31,"plot":"A0314","house":"53/46","tower":"A","floor":"3","pos":"14","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2462000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2262000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2212000},{"no":32,"plot":"A0315","house":"53/47","tower":"A","floor":"3","pos":"15","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องแต่งขาย","listPrice":3099000,"pro1":200000,"pro2":185940,"pro3":50000,"proTotal":435940,"netAfterPro":2663060,"freeTransferValue":40874,"onHand1":31320,"onHand2":23196,"onHandTotal":54516,"totalDiscount":531330,"finalNet":2567670},{"no":33,"plot":"A0316","house":"53/48","tower":"A","floor":"3","pos":"16","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"ห้องว่าง","status":"ห้อง MI","listPrice":2536000,"pro1":200000,"pro2":152160,"pro3":50000,"proTotal":402160,"netAfterPro":2133840,"freeTransferValue":35662,"onHand1":31320,"onHand2":19992,"onHandTotal":51312,"totalDiscount":489134,"finalNet":2046866},{"no":34,"plot":"A0317","house":"53/49","tower":"A","floor":"3","pos":"17","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้อง MI","listPrice":3099000,"pro1":200000,"pro2":185940,"pro3":50000,"proTotal":435940,"netAfterPro":2663060,"freeTransferValue":40874,"onHand1":31320,"onHand2":23196,"onHandTotal":54516,"totalDiscount":531330,"finalNet":2567670},{"no":35,"plot":"A0319","house":"53/51","tower":"A","floor":"3","pos":"19","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01S","area":26.5,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2790000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2590000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2540000},{"no":36,"plot":"A0320","house":"53/52","tower":"A","floor":"3","pos":"20","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01M","area":26.5,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2853000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2653000,"freeTransferValue":50000,"onHand1":31320,"onHand2":22896,"onHandTotal":54216,"totalDiscount":304216,"finalNet":2548784},{"no":37,"plot":"A0322","house":"53/54","tower":"A","floor":"3","pos":"22","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B2-01S","area":28.5,"statusBK":"ดาวน์","status":"รอยกเลิก Sale","listPrice":3173000,"pro1":200000,"pro2":190380,"pro3":50000,"proTotal":440380,"netAfterPro":2732620,"freeTransferValue":43661,"onHand1":31320,"onHand2":24924,"onHandTotal":56244,"totalDiscount":540285,"finalNet":2632715},{"no":38,"plot":"A0323","house":"53/55","tower":"A","floor":"3","pos":"23","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-09S","area":28.83,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3302000,"pro1":200000,"pro2":198120,"pro3":50000,"proTotal":448120,"netAfterPro":2853880,"freeTransferValue":43657,"onHand1":31320,"onHand2":24912,"onHandTotal":56232,"totalDiscount":548009,"finalNet":2753991},{"no":39,"plot":"A0324","house":"53/56","tower":"A","floor":"3","pos":"24","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3342000,"pro1":200000,"pro2":200520,"pro3":50000,"proTotal":450520,"netAfterPro":2891480,"freeTransferValue":42653,"onHand1":31320,"onHand2":24288,"onHandTotal":55608,"totalDiscount":548781,"finalNet":2793219},{"no":40,"plot":"A0325","house":"53/57","tower":"A","floor":"3","pos":"25","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07M","area":28.1,"statusBK":"ห้องว่าง","status":"ห้อง MI","listPrice":3433000,"pro1":200000,"pro2":205980,"pro3":50000,"proTotal":455980,"netAfterPro":2977020,"freeTransferValue":42662,"onHand1":31320,"onHand2":24288,"onHandTotal":55608,"totalDiscount":554250,"finalNet":2878750},{"no":41,"plot":"A0326","house":"53/58","tower":"A","floor":"3","pos":"26","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3342000,"pro1":200000,"pro2":200520,"pro3":50000,"proTotal":450520,"netAfterPro":2891480,"freeTransferValue":42653,"onHand1":31320,"onHand2":24288,"onHandTotal":55608,"totalDiscount":548781,"finalNet":2793219},{"no":42,"plot":"A0327","house":"53/59","tower":"A","floor":"3","pos":"27","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.95,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4278000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3728000,"freeTransferValue":52266,"onHand1":31320,"onHand2":30204,"onHandTotal":61524,"totalDiscount":663790,"finalNet":3614211},{"no":43,"plot":"A0328","house":"53/60","tower":"A","floor":"3","pos":"28","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01M","area":34.94,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4278000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3728000,"freeTransferValue":52248,"onHand1":31320,"onHand2":30192,"onHandTotal":61512,"totalDiscount":663760,"finalNet":3614240},{"no":44,"plot":"A0329","house":"53/61","tower":"A","floor":"3","pos":"29","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.95,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4278000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3728000,"freeTransferValue":52266,"onHand1":31320,"onHand2":30204,"onHandTotal":61524,"totalDiscount":663790,"finalNet":3614211},{"no":45,"plot":"A0330","house":"53/62","tower":"A","floor":"3","pos":"30","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-04S","area":27.52,"statusBK":"ห้องว่าง","status":"พร้อมผู้เช่า","listPrice":3365000,"pro1":200000,"pro2":201900,"pro3":50000,"proTotal":451900,"netAfterPro":2913100,"freeTransferValue":41846,"onHand1":31320,"onHand2":23784,"onHandTotal":55104,"totalDiscount":548850,"finalNet":2816150},{"no":46,"plot":"A0332","house":"53/64","tower":"A","floor":"3","pos":"32","view":"ใน","dir":"ใต้","type":"1BR Extra","plan":"C1-01S","area":28.7,"statusBK":"ดาวน์","status":"รอยกเลิก Sale","listPrice":3483000,"pro1":300000,"pro2":208980,"pro3":50000,"proTotal":558980,"netAfterPro":2924020,"freeTransferValue":43829,"onHand1":31320,"onHand2":25008,"onHandTotal":56328,"totalDiscount":659137,"finalNet":2823863},{"no":47,"plot":"A0401","house":"53/66","tower":"A","floor":"4","pos":"01","view":"นอก","dir":"เหนือ","type":"1BR Plus","plan":"D1-01S","area":34.14,"statusBK":"สัญญา","status":"รอยกเลิก CS","listPrice":3999000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3449000,"freeTransferValue":51116,"onHand1":31320,"onHand2":29508,"onHandTotal":60828,"totalDiscount":661944,"finalNet":3337056},{"no":48,"plot":"A0402","house":"53/67","tower":"A","floor":"4","pos":"02","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-05S","area":28.35,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3184000,"pro1":200000,"pro2":191040,"pro3":50000,"proTotal":441040,"netAfterPro":2742960,"freeTransferValue":42985,"onHand1":31320,"onHand2":24504,"onHandTotal":55824,"totalDiscount":539849,"finalNet":2644152},{"no":49,"plot":"A0403","house":"53/68","tower":"A","floor":"4","pos":"03","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03S","area":24.62,"statusBK":"ห้องว่าง","status":"ห้อง MI","listPrice":2785000,"pro1":200000,"pro2":0,"pro3":50000,"proTotal":250000,"netAfterPro":2535000,"freeTransferValue":37755,"onHand1":31320,"onHand2":21276,"onHandTotal":52596,"totalDiscount":340351,"finalNet":2444649},{"no":50,"plot":"A0404","house":"53/69","tower":"A","floor":"4","pos":"04","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03M","area":24.62,"statusBK":"ห้องว่าง","status":"ห้อง MI","listPrice":2785000,"pro1":200000,"pro2":0,"pro3":50000,"proTotal":250000,"netAfterPro":2535000,"freeTransferValue":37755,"onHand1":31320,"onHand2":21276,"onHandTotal":52596,"totalDiscount":340351,"finalNet":2444649},{"no":51,"plot":"A0405","house":"53/70","tower":"A","floor":"4","pos":"05","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-06S","area":28.72,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3167000,"pro1":200000,"pro2":190020,"pro3":50000,"proTotal":440020,"netAfterPro":2726980,"freeTransferValue":43489,"onHand1":31320,"onHand2":24816,"onHandTotal":56136,"totalDiscount":539645,"finalNet":2627355},{"no":52,"plot":"A0407","house":"53/72","tower":"A","floor":"4","pos":"07","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2953000,"pro1":200000,"pro2":177180,"pro3":50000,"proTotal":427180,"netAfterPro":2525820,"freeTransferValue":40859,"onHand1":31320,"onHand2":23196,"onHandTotal":54516,"totalDiscount":522555,"finalNet":2430445},{"no":53,"plot":"A0409","house":"53/74","tower":"A","floor":"4","pos":"09","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3015000,"pro1":200000,"pro2":180900,"pro3":50000,"proTotal":430900,"netAfterPro":2584100,"freeTransferValue":40865,"onHand1":31320,"onHand2":23196,"onHandTotal":54516,"totalDiscount":526281,"finalNet":2488719},{"no":54,"plot":"A0410","house":"53/75","tower":"A","floor":"4","pos":"10","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"ห้องว่าง","status":"ห้อง MI","listPrice":2685000,"pro1":200000,"pro2":161100,"pro3":50000,"proTotal":411100,"netAfterPro":2273900,"freeTransferValue":35677,"onHand1":31320,"onHand2":19992,"onHandTotal":51312,"totalDiscount":498089,"finalNet":2186911},{"no":55,"plot":"A0411","house":"53/76","tower":"A","floor":"4","pos":"11","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"รอยกเลิก Sale","listPrice":3015000,"pro1":200000,"pro2":180900,"pro3":50000,"proTotal":430900,"netAfterPro":2584100,"freeTransferValue":40865,"onHand1":31320,"onHand2":23196,"onHandTotal":54516,"totalDiscount":526281,"finalNet":2488719},{"no":56,"plot":"A0412","house":"53/77","tower":"A","floor":"4","pos":"12","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2535000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2335000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2285000},{"no":57,"plot":"A0413","house":"53/78","tower":"A","floor":"4","pos":"13","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3015000,"pro1":200000,"pro2":180900,"pro3":50000,"proTotal":430900,"netAfterPro":2584100,"freeTransferValue":40865,"onHand1":31320,"onHand2":23196,"onHandTotal":54516,"totalDiscount":526281,"finalNet":2488719},{"no":58,"plot":"A0414","house":"53/79","tower":"A","floor":"4","pos":"14","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2535000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2335000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2285000},{"no":59,"plot":"A0415","house":"53/80","tower":"A","floor":"4","pos":"15","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3015000,"pro1":200000,"pro2":180900,"pro3":50000,"proTotal":430900,"netAfterPro":2584100,"freeTransferValue":40865,"onHand1":31320,"onHand2":23196,"onHandTotal":54516,"totalDiscount":526281,"finalNet":2488719},{"no":60,"plot":"A0419","house":"53/84","tower":"A","floor":"4","pos":"19","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01S","area":26.5,"statusBK":"สัญญา","status":"จอง","listPrice":2857000,"pro1":200000,"pro2":171420,"pro3":50000,"proTotal":421420,"netAfterPro":2435580,"freeTransferValue":40371,"onHand1":31320,"onHand2":22896,"onHandTotal":54216,"totalDiscount":516007,"finalNet":2340993},{"no":61,"plot":"A0420","house":"53/85","tower":"A","floor":"4","pos":"20","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01M","area":26.5,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2919000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2719000,"freeTransferValue":50000,"onHand1":31320,"onHand2":22896,"onHandTotal":54216,"totalDiscount":304216,"finalNet":2614784},{"no":62,"plot":"A0422","house":"53/87","tower":"A","floor":"4","pos":"22","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B2-01S","area":28.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3244000,"pro1":200000,"pro2":194640,"pro3":50000,"proTotal":444640,"netAfterPro":2799360,"freeTransferValue":43668,"onHand1":31320,"onHand2":24924,"onHandTotal":56244,"totalDiscount":544552,"finalNet":2699448},{"no":63,"plot":"A0424","house":"53/89","tower":"A","floor":"4","pos":"24","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ดาวน์","status":"รอยกเลิก CS","listPrice":3412000,"pro1":200000,"pro2":204720,"pro3":50000,"proTotal":454720,"netAfterPro":2957280,"freeTransferValue":42660,"onHand1":31320,"onHand2":24288,"onHandTotal":55608,"totalDiscount":552988,"finalNet":2859012},{"no":64,"plot":"A0427","house":"53/92","tower":"A","floor":"4","pos":"27","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.95,"statusBK":"ตั้งเรื่องโอน","status":"ยังไม่โอน","listPrice":4364000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3814000,"freeTransferValue":52274,"onHand1":31320,"onHand2":30204,"onHandTotal":61524,"totalDiscount":663798,"finalNet":3700202},{"no":65,"plot":"A0429","house":"53/94","tower":"A","floor":"4","pos":"29","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.95,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4364000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3814000,"freeTransferValue":52274,"onHand1":31320,"onHand2":30204,"onHandTotal":61524,"totalDiscount":663798,"finalNet":3700202},{"no":66,"plot":"A0430","house":"53/95","tower":"A","floor":"4","pos":"30","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-04S","area":27.52,"statusBK":"สัญญา","status":"แนวโน้มไม่โอน/CS","listPrice":3344000,"pro1":200000,"pro2":200640,"pro3":50000,"proTotal":450640,"netAfterPro":2893360,"freeTransferValue":41844,"onHand1":31320,"onHand2":23784,"onHandTotal":55104,"totalDiscount":547588,"finalNet":2796412},{"no":67,"plot":"A0431","house":"53/96","tower":"A","floor":"4","pos":"31","view":"ใน","dir":"ตะวันตก","type":"1BR","plan":"A2-02S","area":23.68,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2462000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2262000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2212000},{"no":68,"plot":"A0432","house":"53/97","tower":"A","floor":"4","pos":"32","view":"ใน","dir":"ใต้","type":"1BR Extra","plan":"C1-01S","area":28.94,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":3554000,"pro1":300000,"pro2":null,"pro3":null,"proTotal":300000,"netAfterPro":3254000,"freeTransferValue":50000,"onHand1":31320,"onHand2":25008,"onHandTotal":56328,"totalDiscount":406328,"finalNet":3147672},{"no":69,"plot":"A0433","house":"53/98","tower":"A","floor":"4","pos":"33","view":"ใน","dir":"ใต้","type":"1BR Plus","plan":"D3-01S","area":35.13,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4539000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3989000,"freeTransferValue":52542,"onHand1":45390,"onHand2":30360,"onHandTotal":75750,"totalDiscount":678292,"finalNet":3860708},{"no":70,"plot":"A0502","house":"53/100","tower":"A","floor":"5","pos":"02","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-05S","area":28.35,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3255000,"pro1":200000,"pro2":195300,"pro3":50000,"proTotal":445300,"netAfterPro":2809700,"freeTransferValue":42992,"onHand1":32550,"onHand2":24504,"onHandTotal":57054,"totalDiscount":545346,"finalNet":2709654},{"no":71,"plot":"A0503","house":"53/101","tower":"A","floor":"5","pos":"03","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03S","area":24.62,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2830000,"pro1":200000,"pro2":169800,"pro3":50000,"proTotal":419800,"netAfterPro":2410200,"freeTransferValue":37759,"onHand1":28300,"onHand2":21276,"onHandTotal":49576,"totalDiscount":507135,"finalNet":2322865},{"no":72,"plot":"A0504","house":"53/102","tower":"A","floor":"5","pos":"04","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03M","area":24.62,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2830000,"pro1":200000,"pro2":169800,"pro3":50000,"proTotal":419800,"netAfterPro":2410200,"freeTransferValue":37759,"onHand1":28300,"onHand2":21276,"onHandTotal":49576,"totalDiscount":507135,"finalNet":2322865},{"no":73,"plot":"A0505","house":"53/103","tower":"A","floor":"5","pos":"05","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-06S","area":28.72,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3239000,"pro1":200000,"pro2":194340,"pro3":50000,"proTotal":444340,"netAfterPro":2794660,"freeTransferValue":43497,"onHand1":32390,"onHand2":24816,"onHandTotal":57206,"totalDiscount":545043,"finalNet":2693957},{"no":74,"plot":"A0507","house":"53/105","tower":"A","floor":"5","pos":"07","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3020000,"pro1":200000,"pro2":181200,"pro3":50000,"proTotal":431200,"netAfterPro":2588800,"freeTransferValue":40866,"onHand1":30200,"onHand2":23196,"onHandTotal":53396,"totalDiscount":525462,"finalNet":2494538},{"no":75,"plot":"A0508","house":"53/106","tower":"A","floor":"5","pos":"08","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2634000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2434000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2384000},{"no":76,"plot":"A0509","house":"53/107","tower":"A","floor":"5","pos":"09","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3083000,"pro1":200000,"pro2":184980,"pro3":50000,"proTotal":434980,"netAfterPro":2648020,"freeTransferValue":40872,"onHand1":30830,"onHand2":23196,"onHandTotal":54026,"totalDiscount":529878,"finalNet":2553122},{"no":77,"plot":"A0510","house":"53/108","tower":"A","floor":"5","pos":"10","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2634000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2434000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2384000},{"no":78,"plot":"A0511","house":"53/109","tower":"A","floor":"5","pos":"11","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3083000,"pro1":200000,"pro2":184980,"pro3":50000,"proTotal":434980,"netAfterPro":2648020,"freeTransferValue":40872,"onHand1":30830,"onHand2":23196,"onHandTotal":54026,"totalDiscount":529878,"finalNet":2553122},{"no":79,"plot":"A0512","house":"53/110","tower":"A","floor":"5","pos":"12","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"จอง","status":"รอยกเลิก Sale","listPrice":2634000,"pro1":200000,"pro2":158040,"pro3":50000,"proTotal":408040,"netAfterPro":2225960,"freeTransferValue":35672,"onHand1":26340,"onHand2":19992,"onHandTotal":46332,"totalDiscount":490044,"finalNet":2143956},{"no":80,"plot":"A0513","house":"53/111","tower":"A","floor":"5","pos":"13","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3083000,"pro1":200000,"pro2":184980,"pro3":50000,"proTotal":434980,"netAfterPro":2648020,"freeTransferValue":40872,"onHand1":30830,"onHand2":23196,"onHandTotal":54026,"totalDiscount":529878,"finalNet":2553122},{"no":81,"plot":"A0514","house":"53/112","tower":"A","floor":"5","pos":"14","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2634000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2434000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2384000},{"no":82,"plot":"A0516","house":"53/114","tower":"A","floor":"5","pos":"16","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"จอง","status":"จอง","listPrice":2634000,"pro1":200000,"pro2":158040,"pro3":50000,"proTotal":408040,"netAfterPro":2225960,"freeTransferValue":35672,"onHand1":26340,"onHand2":19992,"onHandTotal":46332,"totalDiscount":490044,"finalNet":2143956},{"no":83,"plot":"A0517","house":"53/115","tower":"A","floor":"5","pos":"17","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3083000,"pro1":200000,"pro2":184980,"pro3":50000,"proTotal":434980,"netAfterPro":2648020,"freeTransferValue":40872,"onHand1":30830,"onHand2":23196,"onHandTotal":54026,"totalDiscount":529878,"finalNet":2553122},{"no":84,"plot":"A0518","house":"53/116","tower":"A","floor":"5","pos":"18","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01M","area":26.5,"statusBK":"จอง","status":"จอง","listPrice":3048000,"pro1":200000,"pro2":182880,"pro3":50000,"proTotal":432880,"netAfterPro":2615120,"freeTransferValue":40390,"onHand1":30480,"onHand2":22896,"onHandTotal":53376,"totalDiscount":526646,"finalNet":2521354},{"no":85,"plot":"A0521","house":"53/119","tower":"A","floor":"5","pos":"21","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-06S","area":27.1,"statusBK":"ดาวน์","status":"รอยกเลิก Sale","listPrice":3118000,"pro1":200000,"pro2":187080,"pro3":50000,"proTotal":437080,"netAfterPro":2680920,"freeTransferValue":41337,"onHand1":31180,"onHand2":23484,"onHandTotal":54664,"totalDiscount":533081,"finalNet":2584919},{"no":86,"plot":"A0524","house":"53/122","tower":"A","floor":"5","pos":"24","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3483000,"pro1":200000,"pro2":208980,"pro3":50000,"proTotal":458980,"netAfterPro":3024020,"freeTransferValue":42667,"onHand1":34830,"onHand2":24288,"onHandTotal":59118,"totalDiscount":560765,"finalNet":2922235},{"no":87,"plot":"A0526","house":"53/124","tower":"A","floor":"5","pos":"26","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3483000,"pro1":200000,"pro2":208980,"pro3":50000,"proTotal":458980,"netAfterPro":3024020,"freeTransferValue":42667,"onHand1":34830,"onHand2":24288,"onHandTotal":59118,"totalDiscount":560765,"finalNet":2922235},{"no":88,"plot":"A0527","house":"53/125","tower":"A","floor":"5","pos":"27","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.95,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4452000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3902000,"freeTransferValue":52283,"onHand1":44520,"onHand2":30204,"onHandTotal":74724,"totalDiscount":677007,"finalNet":3774993},{"no":89,"plot":"A0528","house":"53/126","tower":"A","floor":"5","pos":"28","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01M","area":34.94,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4452000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3902000,"freeTransferValue":52266,"onHand1":44520,"onHand2":30192,"onHandTotal":74712,"totalDiscount":676978,"finalNet":3775022},{"no":90,"plot":"A0530","house":"53/128","tower":"A","floor":"5","pos":"30","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-04S","area":27.52,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3413000,"pro1":200000,"pro2":204780,"pro3":50000,"proTotal":454780,"netAfterPro":2958220,"freeTransferValue":41851,"onHand1":34130,"onHand2":23784,"onHandTotal":57914,"totalDiscount":554545,"finalNet":2858455},{"no":91,"plot":"A0533","house":"53/131","tower":"A","floor":"5","pos":"33","view":"ใน","dir":"ใต้","type":"1BR Plus","plan":"D3-01S","area":34.9,"statusBK":"ดาวน์","status":"รอยกเลิก CS","listPrice":4627000,"pro1":500000,"pro2":null,"pro3":50000,"proTotal":550000,"netAfterPro":4077000,"freeTransferValue":52551,"onHand1":null,"onHand2":30360,"onHandTotal":30360,"totalDiscount":632911,"finalNet":3994089},{"no":92,"plot":"A0601","house":"53/132","tower":"A","floor":"6","pos":"01","view":"นอก","dir":"เหนือ","type":"1BR Plus","plan":"D1-01S","area":34.14,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4192000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":3642000,"freeTransferValue":51135,"onHand1":41920,"onHand2":29508,"onHandTotal":71428,"totalDiscount":672563,"finalNet":3519437},{"no":93,"plot":"A0602","house":"53/133","tower":"A","floor":"6","pos":"02","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-05S","area":28.3,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3344000,"pro1":200000,"pro2":200640,"pro3":50000,"proTotal":450640,"netAfterPro":2893360,"freeTransferValue":43001,"onHand1":33440,"onHand2":24504,"onHandTotal":57944,"totalDiscount":551585,"finalNet":2792416},{"no":94,"plot":"A0603","house":"53/134","tower":"A","floor":"6","pos":"03","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03S","area":24.62,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2907000,"pro1":200000,"pro2":174420,"pro3":50000,"proTotal":424420,"netAfterPro":2482580,"freeTransferValue":37767,"onHand1":29070,"onHand2":21276,"onHandTotal":50346,"totalDiscount":512533,"finalNet":2394467},{"no":95,"plot":"A0604","house":"53/135","tower":"A","floor":"6","pos":"04","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03M","area":24.62,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2907000,"pro1":200000,"pro2":174420,"pro3":50000,"proTotal":424420,"netAfterPro":2482580,"freeTransferValue":37767,"onHand1":29070,"onHand2":21276,"onHandTotal":50346,"totalDiscount":512533,"finalNet":2394467},{"no":96,"plot":"A0605","house":"53/136","tower":"A","floor":"6","pos":"05","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-06S","area":28.7,"statusBK":"ตั้งเรื่องโอน","status":"นัดโอนแล้ว","listPrice":3329000,"pro1":200000,"pro2":199740,"pro3":50000,"proTotal":449740,"netAfterPro":2879260,"freeTransferValue":43506,"onHand1":33290,"onHand2":24816,"onHandTotal":58106,"totalDiscount":551352,"finalNet":2777648},{"no":97,"plot":"A0607","house":"53/138","tower":"A","floor":"6","pos":"07","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3104000,"pro1":200000,"pro2":186240,"pro3":50000,"proTotal":436240,"netAfterPro":2667760,"freeTransferValue":40874,"onHand1":31040,"onHand2":23196,"onHandTotal":54236,"totalDiscount":531350,"finalNet":2572650},{"no":98,"plot":"A0608","house":"53/139","tower":"A","floor":"6","pos":"08","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2707000,"pro1":200000,"pro2":162420,"pro3":50000,"proTotal":412420,"netAfterPro":2294580,"freeTransferValue":35679,"onHand1":27070,"onHand2":19992,"onHandTotal":47062,"totalDiscount":495161,"finalNet":2211839},{"no":99,"plot":"A0609","house":"53/140","tower":"A","floor":"6","pos":"09","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3167000,"pro1":200000,"pro2":190020,"pro3":50000,"proTotal":440020,"netAfterPro":2726980,"freeTransferValue":40881,"onHand1":31670,"onHand2":23196,"onHandTotal":54866,"totalDiscount":535767,"finalNet":2631233},{"no":100,"plot":"A0611","house":"53/142","tower":"A","floor":"6","pos":"11","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3167000,"pro1":200000,"pro2":190020,"pro3":50000,"proTotal":440020,"netAfterPro":2726980,"freeTransferValue":40881,"onHand1":31670,"onHand2":23196,"onHandTotal":54866,"totalDiscount":535767,"finalNet":2631233},{"no":101,"plot":"A0613","house":"53/144","tower":"A","floor":"6","pos":"13","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3167000,"pro1":200000,"pro2":190020,"pro3":50000,"proTotal":440020,"netAfterPro":2726980,"freeTransferValue":40881,"onHand1":31670,"onHand2":23196,"onHandTotal":54866,"totalDiscount":535767,"finalNet":2631233},{"no":102,"plot":"A0614","house":"53/145","tower":"A","floor":"6","pos":"14","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2707000,"pro1":200000,"pro2":162420,"pro3":50000,"proTotal":412420,"netAfterPro":2294580,"freeTransferValue":35679,"onHand1":27070,"onHand2":19992,"onHandTotal":47062,"totalDiscount":495161,"finalNet":2211839},{"no":103,"plot":"A0615","house":"53/146","tower":"A","floor":"6","pos":"15","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3167000,"pro1":200000,"pro2":190020,"pro3":50000,"proTotal":440020,"netAfterPro":2726980,"freeTransferValue":40881,"onHand1":31670,"onHand2":23196,"onHandTotal":54866,"totalDiscount":535767,"finalNet":2631233},{"no":104,"plot":"A0616","house":"53/147","tower":"A","floor":"6","pos":"16","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2707000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2507000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2457000},{"no":105,"plot":"A0617","house":"53/148","tower":"A","floor":"6","pos":"17","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3167000,"pro1":200000,"pro2":190020,"pro3":50000,"proTotal":440020,"netAfterPro":2726980,"freeTransferValue":40881,"onHand1":31670,"onHand2":23196,"onHandTotal":54866,"totalDiscount":535767,"finalNet":2631233},{"no":106,"plot":"A0619","house":"53/150","tower":"A","floor":"6","pos":"19","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01S","area":26.5,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":3007000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2807000,"freeTransferValue":50000,"onHand1":30070,"onHand2":22896,"onHandTotal":52966,"totalDiscount":302966,"finalNet":2704034},{"no":107,"plot":"A0620","house":"53/151","tower":"A","floor":"6","pos":"20","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01M","area":26.5,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3069000,"pro1":200000,"pro2":184140,"pro3":50000,"proTotal":434140,"netAfterPro":2634860,"freeTransferValue":40392,"onHand1":30690,"onHand2":22896,"onHandTotal":53586,"totalDiscount":528118,"finalNet":2540882},{"no":108,"plot":"A0622","house":"53/153","tower":"A","floor":"6","pos":"22","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B2-01S","area":28.5,"statusBK":"ดาวน์","status":"รอยกเลิก CS","listPrice":3405000,"pro1":200000,"pro2":204300,"pro3":50000,"proTotal":454300,"netAfterPro":2950700,"freeTransferValue":43684,"onHand1":34050,"onHand2":24924,"onHandTotal":58974,"totalDiscount":556958,"finalNet":2848042},{"no":109,"plot":"A0623","house":"53/154","tower":"A","floor":"6","pos":"23","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-09S","area":28.83,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3532000,"pro1":200000,"pro2":211920,"pro3":50000,"proTotal":461920,"netAfterPro":3070080,"freeTransferValue":43680,"onHand1":35320,"onHand2":24912,"onHandTotal":60232,"totalDiscount":565832,"finalNet":2966168},{"no":110,"plot":"A0624","house":"53/155","tower":"A","floor":"6","pos":"24","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3570000,"pro1":200000,"pro2":214200,"pro3":50000,"proTotal":464200,"netAfterPro":3105800,"freeTransferValue":42676,"onHand1":35700,"onHand2":24288,"onHandTotal":59988,"totalDiscount":566864,"finalNet":3003136},{"no":111,"plot":"A0625","house":"53/156","tower":"A","floor":"6","pos":"25","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07M","area":28.1,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3570000,"pro1":200000,"pro2":214200,"pro3":50000,"proTotal":464200,"netAfterPro":3105800,"freeTransferValue":42676,"onHand1":35700,"onHand2":24288,"onHandTotal":59988,"totalDiscount":566864,"finalNet":3003136},{"no":112,"plot":"A0627","house":"53/158","tower":"A","floor":"6","pos":"27","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.95,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4562000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":4012000,"freeTransferValue":52294,"onHand1":45620,"onHand2":30204,"onHandTotal":75824,"totalDiscount":678118,"finalNet":3883882},{"no":113,"plot":"A0628","house":"53/159","tower":"A","floor":"6","pos":"28","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01M","area":34.94,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4562000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":4012000,"freeTransferValue":52277,"onHand1":45620,"onHand2":30192,"onHandTotal":75812,"totalDiscount":678089,"finalNet":3883911},{"no":114,"plot":"A0629","house":"53/160","tower":"A","floor":"6","pos":"29","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.95,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4562000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":4012000,"freeTransferValue":52294,"onHand1":45620,"onHand2":30204,"onHandTotal":75824,"totalDiscount":678118,"finalNet":3883882},{"no":115,"plot":"A0630","house":"53/161","tower":"A","floor":"6","pos":"30","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-04S","area":27.52,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3499000,"pro1":200000,"pro2":209940,"pro3":50000,"proTotal":459940,"netAfterPro":3039060,"freeTransferValue":41859,"onHand1":34990,"onHand2":23784,"onHandTotal":58774,"totalDiscount":560573,"finalNet":2938427},{"no":116,"plot":"A0631","house":"53/162","tower":"A","floor":"6","pos":"31","view":"ใน","dir":"ตะวันตก","type":"1BR","plan":"A2-02S","area":23.6,"statusBK":"จอง","status":"จอง","listPrice":2664000,"pro1":200000,"pro2":159840,"pro3":50000,"proTotal":409840,"netAfterPro":2254160,"freeTransferValue":36432,"onHand1":26640,"onHand2":20460,"onHandTotal":47100,"totalDiscount":493372,"finalNet":2170628},{"no":117,"plot":"A0632","house":"53/163","tower":"A","floor":"6","pos":"32","view":"ใน","dir":"ใต้","type":"1BR Extra","plan":"C1-01S","area":28.94,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3717000,"pro1":300000,"pro2":223020,"pro3":50000,"proTotal":573020,"netAfterPro":3143980,"freeTransferValue":43852,"onHand1":37170,"onHand2":25008,"onHandTotal":62178,"totalDiscount":679050,"finalNet":3037950},{"no":118,"plot":"A0633","house":"53/164","tower":"A","floor":"6","pos":"33","view":"ใน","dir":"ใต้","type":"1BR Plus","plan":"D3-01S","area":35.13,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4737000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":4187000,"freeTransferValue":52562,"onHand1":47370,"onHand2":30360,"onHandTotal":77730,"totalDiscount":680292,"finalNet":4056708},{"no":119,"plot":"A0701","house":"53/165","tower":"A","floor":"7","pos":"01","view":"นอก","dir":"เหนือ","type":"1BR Plus","plan":"D1-01S","area":34.1,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":4319000,"pro1":500000,"pro2":null,"pro3":50000,"proTotal":550000,"netAfterPro":3769000,"freeTransferValue":51148,"onHand1":null,"onHand2":29508,"onHandTotal":29508,"totalDiscount":630656,"finalNet":3688344},{"no":120,"plot":"A0702","house":"53/166","tower":"A","floor":"7","pos":"02","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-05S","area":28.3,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3450000,"pro1":200000,"pro2":207000,"pro3":50000,"proTotal":457000,"netAfterPro":2993000,"freeTransferValue":43011,"onHand1":34500,"onHand2":24504,"onHandTotal":59004,"totalDiscount":559015,"finalNet":2890985},{"no":121,"plot":"A0703","house":"53/167","tower":"A","floor":"7","pos":"03","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03S","area":24.62,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2999000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2799000,"freeTransferValue":50000,"onHand1":29990,"onHand2":21276,"onHandTotal":51266,"totalDiscount":301266,"finalNet":2697734},{"no":122,"plot":"A0704","house":"53/168","tower":"A","floor":"7","pos":"04","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03M","area":24.6,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2999000,"pro1":200000,"pro2":179940,"pro3":50000,"proTotal":429940,"netAfterPro":2569060,"freeTransferValue":37776,"onHand1":29990,"onHand2":21276,"onHandTotal":51266,"totalDiscount":518982,"finalNet":2480018},{"no":123,"plot":"A0705","house":"53/169","tower":"A","floor":"7","pos":"05","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-06S","area":28.72,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3437000,"pro1":200000,"pro2":206220,"pro3":50000,"proTotal":456220,"netAfterPro":2980780,"freeTransferValue":43516,"onHand1":34370,"onHand2":24816,"onHandTotal":59186,"totalDiscount":558922,"finalNet":2878078},{"no":124,"plot":"A0707","house":"53/171","tower":"A","floor":"7","pos":"07","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3204000,"pro1":200000,"pro2":192240,"pro3":50000,"proTotal":442240,"netAfterPro":2761760,"freeTransferValue":40884,"onHand1":32040,"onHand2":23196,"onHandTotal":55236,"totalDiscount":538360,"finalNet":2665640},{"no":125,"plot":"A0708","house":"53/172","tower":"A","floor":"7","pos":"08","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2792000,"pro1":200000,"pro2":167520,"pro3":50000,"proTotal":417520,"netAfterPro":2374480,"freeTransferValue":35688,"onHand1":27920,"onHand2":19992,"onHandTotal":47912,"totalDiscount":501120,"finalNet":2290880},{"no":126,"plot":"A0709","house":"53/173","tower":"A","floor":"7","pos":"09","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3267000,"pro1":200000,"pro2":196020,"pro3":50000,"proTotal":446020,"netAfterPro":2820980,"freeTransferValue":40891,"onHand1":32670,"onHand2":23196,"onHandTotal":55866,"totalDiscount":542777,"finalNet":2724223},{"no":127,"plot":"A0710","house":"53/174","tower":"A","floor":"7","pos":"10","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2792000,"pro1":200000,"pro2":167520,"pro3":50000,"proTotal":417520,"netAfterPro":2374480,"freeTransferValue":35688,"onHand1":27920,"onHand2":19992,"onHandTotal":47912,"totalDiscount":501120,"finalNet":2290880},{"no":128,"plot":"A0711","house":"53/175","tower":"A","floor":"7","pos":"11","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3267000,"pro1":200000,"pro2":196020,"pro3":50000,"proTotal":446020,"netAfterPro":2820980,"freeTransferValue":40891,"onHand1":32670,"onHand2":23196,"onHandTotal":55866,"totalDiscount":542777,"finalNet":2724223},{"no":129,"plot":"A0712","house":"53/176","tower":"A","floor":"7","pos":"12","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2792000,"pro1":200000,"pro2":167520,"pro3":50000,"proTotal":417520,"netAfterPro":2374480,"freeTransferValue":35688,"onHand1":27920,"onHand2":19992,"onHandTotal":47912,"totalDiscount":501120,"finalNet":2290880},{"no":130,"plot":"A0713","house":"53/177","tower":"A","floor":"7","pos":"13","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3267000,"pro1":200000,"pro2":196020,"pro3":50000,"proTotal":446020,"netAfterPro":2820980,"freeTransferValue":40891,"onHand1":32670,"onHand2":23196,"onHandTotal":55866,"totalDiscount":542777,"finalNet":2724223},{"no":131,"plot":"A0714","house":"53/178","tower":"A","floor":"7","pos":"14","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2792000,"pro1":200000,"pro2":167520,"pro3":50000,"proTotal":417520,"netAfterPro":2374480,"freeTransferValue":35688,"onHand1":27920,"onHand2":19992,"onHandTotal":47912,"totalDiscount":501120,"finalNet":2290880},{"no":132,"plot":"A0715","house":"53/179","tower":"A","floor":"7","pos":"15","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3267000,"pro1":200000,"pro2":196020,"pro3":50000,"proTotal":446020,"netAfterPro":2820980,"freeTransferValue":40891,"onHand1":32670,"onHand2":23196,"onHandTotal":55866,"totalDiscount":542777,"finalNet":2724223},{"no":133,"plot":"A0716","house":"53/180","tower":"A","floor":"7","pos":"16","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":23.13,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2792000,"pro1":200000,"pro2":167520,"pro3":50000,"proTotal":417520,"netAfterPro":2374480,"freeTransferValue":35688,"onHand1":27920,"onHand2":19992,"onHandTotal":47912,"totalDiscount":501120,"finalNet":2290880},{"no":134,"plot":"A0717","house":"53/181","tower":"A","floor":"7","pos":"17","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3267000,"pro1":200000,"pro2":196020,"pro3":50000,"proTotal":446020,"netAfterPro":2820980,"freeTransferValue":40891,"onHand1":32670,"onHand2":23196,"onHandTotal":55866,"totalDiscount":542777,"finalNet":2724223},{"no":135,"plot":"A0718","house":"53/182","tower":"A","floor":"7","pos":"18","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01M","area":26.5,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3230000,"pro1":200000,"pro2":193800,"pro3":50000,"proTotal":443800,"netAfterPro":2786200,"freeTransferValue":40408,"onHand1":32300,"onHand2":22896,"onHandTotal":55196,"totalDiscount":539404,"finalNet":2690596},{"no":136,"plot":"A0719","house":"53/183","tower":"A","floor":"7","pos":"19","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01S","area":26.5,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3105000,"pro1":200000,"pro2":186300,"pro3":50000,"proTotal":436300,"netAfterPro":2668700,"freeTransferValue":40403,"onHand1":31050,"onHand2":22896,"onHandTotal":53946,"totalDiscount":530649,"finalNet":2574351},{"no":137,"plot":"A0720","house":"53/184","tower":"A","floor":"7","pos":"20","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01M","area":26.5,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3168000,"pro1":200000,"pro2":190080,"pro3":50000,"proTotal":440080,"netAfterPro":2727920,"freeTransferValue":40402,"onHand1":31680,"onHand2":22896,"onHandTotal":54576,"totalDiscount":535058,"finalNet":2632942},{"no":138,"plot":"A0721","house":"53/185","tower":"A","floor":"7","pos":"21","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-06S","area":27.17,"statusBK":"สัญญา","status":"รอยกเลิก CS","listPrice":3304000,"pro1":200000,"pro2":198240,"pro3":50000,"proTotal":448240,"netAfterPro":2855760,"freeTransferValue":41356,"onHand1":33040,"onHand2":23484,"onHandTotal":56524,"totalDiscount":546120,"finalNet":2757880},{"no":139,"plot":"A0722","house":"53/186","tower":"A","floor":"7","pos":"22","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B2-01S","area":28.84,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3512000,"pro1":200000,"pro2":210720,"pro3":50000,"proTotal":460720,"netAfterPro":3051280,"freeTransferValue":43695,"onHand1":35120,"onHand2":24924,"onHandTotal":60044,"totalDiscount":564459,"finalNet":2947541},{"no":140,"plot":"A0723","house":"53/187","tower":"A","floor":"7","pos":"23","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-09S","area":28.3,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3638000,"pro1":200000,"pro2":218280,"pro3":50000,"proTotal":468280,"netAfterPro":3169720,"freeTransferValue":43690,"onHand1":36380,"onHand2":24912,"onHandTotal":61292,"totalDiscount":573262,"finalNet":3064738},{"no":141,"plot":"A0724","house":"53/188","tower":"A","floor":"7","pos":"24","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3675000,"pro1":200000,"pro2":220500,"pro3":50000,"proTotal":470500,"netAfterPro":3204500,"freeTransferValue":42686,"onHand1":36750,"onHand2":24288,"onHandTotal":61038,"totalDiscount":574224,"finalNet":3100776},{"no":142,"plot":"A0725","house":"53/189","tower":"A","floor":"7","pos":"25","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07M","area":28.1,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3675000,"pro1":200000,"pro2":220500,"pro3":50000,"proTotal":470500,"netAfterPro":3204500,"freeTransferValue":42686,"onHand1":36750,"onHand2":24288,"onHandTotal":61038,"totalDiscount":574224,"finalNet":3100776},{"no":143,"plot":"A0726","house":"53/190","tower":"A","floor":"7","pos":"26","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3675000,"pro1":200000,"pro2":220500,"pro3":50000,"proTotal":470500,"netAfterPro":3204500,"freeTransferValue":42686,"onHand1":36750,"onHand2":24288,"onHandTotal":61038,"totalDiscount":574224,"finalNet":3100776},{"no":144,"plot":"A0727","house":"53/191","tower":"A","floor":"7","pos":"27","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":4692000,"pro1":500000,"pro2":null,"pro3":50000,"proTotal":550000,"netAfterPro":4142000,"freeTransferValue":52307,"onHand1":null,"onHand2":30204,"onHandTotal":30204,"totalDiscount":632511,"finalNet":4059489},{"no":145,"plot":"A0728","house":"53/192","tower":"A","floor":"7","pos":"28","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01M","area":34.94,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4692000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":4142000,"freeTransferValue":52290,"onHand1":46920,"onHand2":30192,"onHandTotal":77112,"totalDiscount":679402,"finalNet":4012598},{"no":146,"plot":"A0729","house":"53/193","tower":"A","floor":"7","pos":"29","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":4692000,"pro1":500000,"pro2":null,"pro3":50000,"proTotal":550000,"netAfterPro":4142000,"freeTransferValue":52307,"onHand1":null,"onHand2":30204,"onHandTotal":30204,"totalDiscount":632511,"finalNet":4059489},{"no":147,"plot":"A0730","house":"53/194","tower":"A","floor":"7","pos":"30","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-04S","area":27.52,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3603000,"pro1":200000,"pro2":216180,"pro3":50000,"proTotal":466180,"netAfterPro":3136820,"freeTransferValue":41870,"onHand1":36030,"onHand2":23784,"onHandTotal":59814,"totalDiscount":567864,"finalNet":3035136},{"no":148,"plot":"A0731","house":"53/195","tower":"A","floor":"7","pos":"31","view":"ใน","dir":"ตะวันตก","type":"1BR","plan":"A2-02S","area":23.68,"statusBK":"จอง","status":"จอง","listPrice":2752000,"pro1":200000,"pro2":165120,"pro3":50000,"proTotal":415120,"netAfterPro":2336880,"freeTransferValue":36441,"onHand1":27520,"onHand2":20460,"onHandTotal":47980,"totalDiscount":499541,"finalNet":2252459},{"no":149,"plot":"A0732","house":"53/196","tower":"A","floor":"7","pos":"32","view":"ใน","dir":"ใต้","type":"1BR Extra","plan":"C1-01S","area":28.94,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3824000,"pro1":300000,"pro2":229440,"pro3":50000,"proTotal":579440,"netAfterPro":3244560,"freeTransferValue":43863,"onHand1":38240,"onHand2":25008,"onHandTotal":63248,"totalDiscount":686551,"finalNet":3137449},{"no":150,"plot":"A0733","house":"53/197","tower":"A","floor":"7","pos":"33","view":"ใน","dir":"ใต้","type":"1BR Plus","plan":"D3-01S","area":35.13,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4867000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":4317000,"freeTransferValue":52575,"onHand1":48670,"onHand2":30360,"onHandTotal":79030,"totalDiscount":681605,"finalNet":4185395},{"no":151,"plot":"A0801","house":"53/198","tower":"A","floor":"8","pos":"01","view":"นอก","dir":"เหนือ","type":"1BR Plus","plan":"D1-01S","area":34.1,"statusBK":"สัญญา","status":"รอยกเลิก CS","listPrice":4448000,"pro1":500000,"pro2":null,"pro3":50000,"proTotal":550000,"netAfterPro":3898000,"freeTransferValue":51166,"onHand1":null,"onHand2":29508,"onHandTotal":29508,"totalDiscount":630674,"finalNet":3817326},{"no":152,"plot":"A0802","house":"53/199","tower":"A","floor":"8","pos":"02","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-05S","area":28.3,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3557000,"pro1":200000,"pro2":213420,"pro3":50000,"proTotal":463420,"netAfterPro":3093580,"freeTransferValue":43027,"onHand1":35570,"onHand2":24504,"onHandTotal":60074,"totalDiscount":566521,"finalNet":2990479},{"no":153,"plot":"A0803","house":"53/200","tower":"A","floor":"8","pos":"03","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03S","area":24.6,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3092000,"pro1":200000,"pro2":185520,"pro3":50000,"proTotal":435520,"netAfterPro":2656480,"freeTransferValue":37803,"onHand1":30920,"onHand2":21288,"onHandTotal":52208,"totalDiscount":525531,"finalNet":2566469},{"no":154,"plot":"A0804","house":"53/201","tower":"A","floor":"8","pos":"04","view":"นอก","dir":"เหนือ","type":"1BR","plan":"A1-03M","area":24.6,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3092000,"pro1":200000,"pro2":185520,"pro3":50000,"proTotal":435520,"netAfterPro":2656480,"freeTransferValue":37803,"onHand1":30920,"onHand2":21288,"onHandTotal":52208,"totalDiscount":525531,"finalNet":2566469},{"no":155,"plot":"A0805","house":"53/202","tower":"A","floor":"8","pos":"05","view":"นอก","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-06S","area":28.7,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3544000,"pro1":200000,"pro2":212640,"pro3":50000,"proTotal":462640,"netAfterPro":3081360,"freeTransferValue":43544,"onHand1":35440,"onHand2":24828,"onHandTotal":60268,"totalDiscount":566452,"finalNet":2977548},{"no":156,"plot":"A0806","house":"53/203","tower":"A","floor":"8","pos":"06","view":"นอก","dir":"ตะวันออก","type":"1BR Extra","plan":"C2-01S","area":29.9,"statusBK":"ล็อคนุ้ย","status":"ล็อคนุ้ย","listPrice":3694000,"pro1":300000,"pro2":221640,"pro3":50000,"proTotal":571640,"netAfterPro":3122360,"freeTransferValue":45280,"onHand1":36940,"onHand2":25896,"onHandTotal":62836,"totalDiscount":679756,"finalNet":3014244},{"no":157,"plot":"A0807","house":"53/204","tower":"A","floor":"8","pos":"07","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3305000,"pro1":200000,"pro2":198300,"pro3":50000,"proTotal":448300,"netAfterPro":2856700,"freeTransferValue":40912,"onHand1":33050,"onHand2":23208,"onHandTotal":56258,"totalDiscount":545470,"finalNet":2759530},{"no":158,"plot":"A0808","house":"53/205","tower":"A","floor":"8","pos":"08","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2878000,"pro1":200000,"pro2":172680,"pro3":50000,"proTotal":422680,"netAfterPro":2455320,"freeTransferValue":35713,"onHand1":28780,"onHand2":20004,"onHandTotal":48784,"totalDiscount":507177,"finalNet":2370823},{"no":159,"plot":"A0809","house":"53/206","tower":"A","floor":"8","pos":"09","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3368000,"pro1":200000,"pro2":202080,"pro3":50000,"proTotal":452080,"netAfterPro":2915920,"freeTransferValue":40918,"onHand1":33680,"onHand2":23208,"onHandTotal":56888,"totalDiscount":549886,"finalNet":2818114},{"no":160,"plot":"A0810","house":"53/207","tower":"A","floor":"8","pos":"10","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2878000,"pro1":200000,"pro2":172680,"pro3":50000,"proTotal":422680,"netAfterPro":2455320,"freeTransferValue":35713,"onHand1":28780,"onHand2":20004,"onHandTotal":48784,"totalDiscount":507177,"finalNet":2370823},{"no":161,"plot":"A0811","house":"53/208","tower":"A","floor":"8","pos":"11","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3368000,"pro1":200000,"pro2":202080,"pro3":50000,"proTotal":452080,"netAfterPro":2915920,"freeTransferValue":40918,"onHand1":33680,"onHand2":23208,"onHandTotal":56888,"totalDiscount":549886,"finalNet":2818114},{"no":162,"plot":"A0812","house":"53/209","tower":"A","floor":"8","pos":"12","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2878000,"pro1":200000,"pro2":172680,"pro3":50000,"proTotal":422680,"netAfterPro":2455320,"freeTransferValue":35713,"onHand1":28780,"onHand2":20004,"onHandTotal":48784,"totalDiscount":507177,"finalNet":2370823},{"no":163,"plot":"A0813","house":"53/210","tower":"A","floor":"8","pos":"13","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3368000,"pro1":200000,"pro2":202080,"pro3":50000,"proTotal":452080,"netAfterPro":2915920,"freeTransferValue":40918,"onHand1":33680,"onHand2":23208,"onHandTotal":56888,"totalDiscount":549886,"finalNet":2818114},{"no":164,"plot":"A0814","house":"53/211","tower":"A","floor":"8","pos":"14","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2878000,"pro1":200000,"pro2":172680,"pro3":50000,"proTotal":422680,"netAfterPro":2455320,"freeTransferValue":35713,"onHand1":28780,"onHand2":20004,"onHandTotal":48784,"totalDiscount":507177,"finalNet":2370823},{"no":165,"plot":"A0815","house":"53/212","tower":"A","floor":"8","pos":"15","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3368000,"pro1":200000,"pro2":202080,"pro3":50000,"proTotal":452080,"netAfterPro":2915920,"freeTransferValue":40918,"onHand1":33680,"onHand2":23208,"onHandTotal":56888,"totalDiscount":549886,"finalNet":2818114},{"no":166,"plot":"A0816","house":"53/213","tower":"A","floor":"8","pos":"16","view":"นอก","dir":"ตะวันออก","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2878000,"pro1":200000,"pro2":172680,"pro3":50000,"proTotal":422680,"netAfterPro":2455320,"freeTransferValue":35713,"onHand1":28780,"onHand2":20004,"onHandTotal":48784,"totalDiscount":507177,"finalNet":2370823},{"no":167,"plot":"A0817","house":"53/214","tower":"A","floor":"8","pos":"17","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3368000,"pro1":200000,"pro2":202080,"pro3":50000,"proTotal":452080,"netAfterPro":2915920,"freeTransferValue":40918,"onHand1":33680,"onHand2":23208,"onHandTotal":56888,"totalDiscount":549886,"finalNet":2818114},{"no":168,"plot":"A0818","house":"53/215","tower":"A","floor":"8","pos":"18","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01M","area":26.5,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3330000,"pro1":200000,"pro2":199800,"pro3":50000,"proTotal":449800,"netAfterPro":2880200,"freeTransferValue":40435,"onHand1":33300,"onHand2":22908,"onHandTotal":56208,"totalDiscount":546443,"finalNet":2783557},{"no":169,"plot":"A0819","house":"53/216","tower":"A","floor":"8","pos":"19","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01S","area":26.51,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3205000,"pro1":200000,"pro2":192300,"pro3":50000,"proTotal":442300,"netAfterPro":2762700,"freeTransferValue":40423,"onHand1":32050,"onHand2":22908,"onHandTotal":54958,"totalDiscount":537681,"finalNet":2667319},{"no":170,"plot":"A0820","house":"53/217","tower":"A","floor":"8","pos":"20","view":"นอก","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-01M","area":26.51,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3268000,"pro1":200000,"pro2":196080,"pro3":50000,"proTotal":446080,"netAfterPro":2821920,"freeTransferValue":40429,"onHand1":32680,"onHand2":22908,"onHandTotal":55588,"totalDiscount":542097,"finalNet":2725903},{"no":171,"plot":"A0823","house":"53/218","tower":"A","floor":"8","pos":"23","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-09S","area":28.3,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3744000,"pro1":200000,"pro2":224640,"pro3":50000,"proTotal":474640,"netAfterPro":3269360,"freeTransferValue":43718,"onHand1":37440,"onHand2":24924,"onHandTotal":62364,"totalDiscount":580722,"finalNet":3163278},{"no":172,"plot":"A0824","house":"53/219","tower":"A","floor":"8","pos":"24","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3782000,"pro1":200000,"pro2":226920,"pro3":50000,"proTotal":476920,"netAfterPro":3305080,"freeTransferValue":42702,"onHand1":37820,"onHand2":24288,"onHandTotal":62108,"totalDiscount":581730,"finalNet":3200270},{"no":173,"plot":"A0825","house":"53/220","tower":"A","floor":"8","pos":"25","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07M","area":28.1,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3782000,"pro1":200000,"pro2":226920,"pro3":50000,"proTotal":476920,"netAfterPro":3305080,"freeTransferValue":42702,"onHand1":37820,"onHand2":24288,"onHandTotal":62108,"totalDiscount":581730,"finalNet":3200270},{"no":174,"plot":"A0826","house":"53/221","tower":"A","floor":"8","pos":"26","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-07S","area":28.1,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3782000,"pro1":200000,"pro2":226920,"pro3":50000,"proTotal":476920,"netAfterPro":3305080,"freeTransferValue":42702,"onHand1":37820,"onHand2":24288,"onHandTotal":62108,"totalDiscount":581730,"finalNet":3200270},{"no":175,"plot":"A0827","house":"53/222","tower":"A","floor":"8","pos":"27","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":4823000,"pro1":500000,"pro2":null,"pro3":50000,"proTotal":550000,"netAfterPro":4273000,"freeTransferValue":52320,"onHand1":null,"onHand2":30204,"onHandTotal":30204,"totalDiscount":632524,"finalNet":4190476},{"no":176,"plot":"A0828","house":"53/223","tower":"A","floor":"8","pos":"28","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01M","area":34.9,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4823000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":4273000,"freeTransferValue":52320,"onHand1":48230,"onHand2":30204,"onHandTotal":78434,"totalDiscount":680754,"finalNet":4142246},{"no":177,"plot":"A0829","house":"53/224","tower":"A","floor":"8","pos":"29","view":"ใน","dir":"ตะวันตก","type":"1BR Plus","plan":"D2-01S","area":34.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":4823000,"pro1":500000,"pro2":null,"pro3":50000,"proTotal":550000,"netAfterPro":4273000,"freeTransferValue":52320,"onHand1":null,"onHand2":30204,"onHandTotal":30204,"totalDiscount":632524,"finalNet":4190476},{"no":178,"plot":"A0830","house":"53/225","tower":"A","floor":"8","pos":"30","view":"ใน","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-04S","area":27.5,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3705000,"pro1":200000,"pro2":222300,"pro3":50000,"proTotal":472300,"netAfterPro":3232700,"freeTransferValue":41897,"onHand1":37050,"onHand2":23796,"onHandTotal":60846,"totalDiscount":575043,"finalNet":3129957},{"no":179,"plot":"A0831","house":"53/226","tower":"A","floor":"8","pos":"31","view":"ใน","dir":"ตะวันตก","type":"1BR","plan":"A2-02S","area":23.6,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2840000,"pro1":200000,"pro2":170400,"pro3":50000,"proTotal":420400,"netAfterPro":2419600,"freeTransferValue":36467,"onHand1":28400,"onHand2":20472,"onHandTotal":48872,"totalDiscount":505739,"finalNet":2334261},{"no":180,"plot":"A0832","house":"53/227","tower":"A","floor":"8","pos":"32","view":"ใน","dir":"ใต้","type":"1BR Extra","plan":"C1-01S","area":28.95,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3932000,"pro1":300000,"pro2":235920,"pro3":50000,"proTotal":585920,"netAfterPro":3346080,"freeTransferValue":43891,"onHand1":39320,"onHand2":25020,"onHandTotal":64340,"totalDiscount":694151,"finalNet":3237849},{"no":181,"plot":"A0833","house":"53/228","tower":"A","floor":"8","pos":"33","view":"ใน","dir":"ใต้","type":"1BR Plus","plan":"D3-01S","area":35.14,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":4998000,"pro1":500000,"pro2":0,"pro3":50000,"proTotal":550000,"netAfterPro":4448000,"freeTransferValue":52605,"onHand1":49980,"onHand2":30372,"onHandTotal":80352,"totalDiscount":682957,"finalNet":4315043},{"no":1,"plot":"B0202","house":"53/230","tower":"B","floor":"2","pos":"02","view":"ใน","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-10S","area":29.09,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3243000,"pro1":200000,"pro2":194580,"pro3":50000,"proTotal":444580,"netAfterPro":2798420,"freeTransferValue":44016,"onHand1":32430,"onHand2":25140,"onHandTotal":57570,"totalDiscount":546166,"finalNet":2696834},{"no":2,"plot":"B0204","house":"53/232","tower":"B","floor":"2","pos":"04","view":"ใน","dir":"เหนือ","type":"1BR","plan":"A2-01S","area":23.44,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2462000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2262000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2212000},{"no":3,"plot":"B0207","house":"53/234","tower":"B","floor":"2","pos":"07","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-04S","area":27.3,"statusBK":"สัญญา","status":"รอยกเลิก CS","listPrice":2935000,"pro1":200000,"pro2":176100,"pro3":50000,"proTotal":426100,"netAfterPro":2508900,"freeTransferValue":41495,"onHand1":29350,"onHand2":23592,"onHandTotal":52942,"totalDiscount":520537,"finalNet":2414463},{"no":4,"plot":"B0208","house":"53/235","tower":"B","floor":"2","pos":"08","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-01S","area":26.52,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2849000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2649000,"freeTransferValue":50000,"onHand1":28490,"onHand2":22920,"onHandTotal":51410,"totalDiscount":301410,"finalNet":2547590},{"no":5,"plot":"B0209","house":"53/236","tower":"B","floor":"2","pos":"09","view":"นอก","dir":"ใต้","type":"1BR","plan":"A1-01S","area":23.14,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2462000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2262000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2212000},{"no":6,"plot":"B0212","house":"53/239","tower":"B","floor":"2","pos":"12","view":"นอก","dir":"ใต้","type":"1BR Extra","plan":"C2-02S","area":31.3,"statusBK":"ห้องว่าง","status":"ห้อง MI","listPrice":3553000,"pro1":300000,"pro2":213180,"pro3":50000,"proTotal":563180,"netAfterPro":2989820,"freeTransferValue":47117,"onHand1":35530,"onHand2":27048,"onHandTotal":62578,"totalDiscount":672875,"finalNet":2880125},{"no":7,"plot":"B0213","house":"53/240","tower":"B","floor":"2","pos":"13","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-03S","area":26.94,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2768000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2568000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2518000},{"no":8,"plot":"B0218","house":"53/245","tower":"B","floor":"2","pos":"18","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-02S","area":27.06,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2785000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2585000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2535000},{"no":9,"plot":"B0302","house":"53/247","tower":"B","floor":"3","pos":"02","view":"ใน","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-10S","area":29.09,"statusBK":"สัญญา","status":"รอยกเลิก Sale","listPrice":3440000,"pro1":200000,"pro2":206400,"pro3":50000,"proTotal":456400,"netAfterPro":2983600,"freeTransferValue":44035,"onHand1":34400,"onHand2":25140,"onHandTotal":59540,"totalDiscount":559975,"finalNet":2880025},{"no":10,"plot":"B0303","house":"53/248","tower":"B","floor":"3","pos":"03","view":"ใน","dir":"ตะวันออก","type":"1BR Extra","plan":"C3-01S","area":32.28,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":3545000,"pro1":300000,"pro2":null,"pro3":null,"proTotal":300000,"netAfterPro":3245000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":350000,"finalNet":3195000},{"no":11,"plot":"B0305","house":"53/250","tower":"B","floor":"3","pos":"05","view":"ใน","dir":"เหนือ","type":"1BR EXC 1","plan":"B1-05S","area":27.29,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3307000,"pro1":200000,"pro2":198420,"pro3":50000,"proTotal":448420,"netAfterPro":2858580,"freeTransferValue":41515,"onHand1":33070,"onHand2":23580,"onHandTotal":56650,"totalDiscount":546585,"finalNet":2760415},{"no":12,"plot":"B0306","house":"53/251","tower":"B","floor":"3","pos":"06","view":"ใน","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-01S","area":26.73,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3252000,"pro1":200000,"pro2":195120,"pro3":50000,"proTotal":445120,"netAfterPro":2806880,"freeTransferValue":40735,"onHand1":32520,"onHand2":23100,"onHandTotal":55620,"totalDiscount":541475,"finalNet":2710525},{"no":13,"plot":"B0307","house":"53/252","tower":"B","floor":"3","pos":"07","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-04S","area":27.3,"statusBK":"ดาวน์","status":"รอยกเลิก Sale","listPrice":3004000,"pro1":200000,"pro2":180240,"pro3":50000,"proTotal":430240,"netAfterPro":2573760,"freeTransferValue":41502,"onHand1":30040,"onHand2":23592,"onHandTotal":53632,"totalDiscount":525374,"finalNet":2478626},{"no":14,"plot":"B0310","house":"53/255","tower":"B","floor":"3","pos":"10","view":"นอก","dir":"ใต้","type":"1BR EXC 2","plan":"B3-03S","area":26.85,"statusBK":"ห้องว่าง","status":"จอง","listPrice":2887000,"pro1":200000,"pro2":173220,"pro3":50000,"proTotal":423220,"netAfterPro":2463780,"freeTransferValue":40870,"onHand1":28870,"onHand2":23208,"onHandTotal":52078,"totalDiscount":516168,"finalNet":2370832},{"no":15,"plot":"B0311","house":"53/256","tower":"B","floor":"3","pos":"11","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-01M","area":26.52,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2853000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2653000,"freeTransferValue":50000,"onHand1":28530,"onHand2":22920,"onHandTotal":51450,"totalDiscount":301450,"finalNet":2551550},{"no":16,"plot":"B0314","house":"53/259","tower":"B","floor":"3","pos":"14","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-02S","area":26.59,"statusBK":"สัญญา","status":"ยังไม่โอน","listPrice":2802000,"pro1":200000,"pro2":168120,"pro3":50000,"proTotal":418120,"netAfterPro":2383880,"freeTransferValue":40497,"onHand1":28020,"onHand2":22980,"onHandTotal":51000,"totalDiscount":509617,"finalNet":2292383},{"no":17,"plot":"B0316","house":"53/261","tower":"B","floor":"3","pos":"16","view":"นอก","dir":"ตะวันตก","type":"1BR","plan":"A1-02S","area":23.22,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2462000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2262000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2212000},{"no":18,"plot":"B0318","house":"53/263","tower":"B","floor":"3","pos":"18","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-02S","area":27.06,"statusBK":"ห้องว่าง","status":"จอง","listPrice":2853000,"pro1":200000,"pro2":171180,"pro3":50000,"proTotal":421180,"netAfterPro":2431820,"freeTransferValue":41157,"onHand1":28530,"onHand2":23388,"onHandTotal":51918,"totalDiscount":514255,"finalNet":2338745},{"no":19,"plot":"B0402","house":"53/265","tower":"B","floor":"4","pos":"02","view":"ใน","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-10S","area":29.09,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3513000,"pro1":200000,"pro2":210780,"pro3":50000,"proTotal":460780,"netAfterPro":3052220,"freeTransferValue":44043,"onHand1":35130,"onHand2":25140,"onHandTotal":60270,"totalDiscount":565093,"finalNet":2947907},{"no":20,"plot":"B0404","house":"53/267","tower":"B","floor":"4","pos":"04","view":"ใน","dir":"เหนือ","type":"1BR","plan":"A2-01S","area":23.44,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2534000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2334000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2284000},{"no":21,"plot":"B0405","house":"53/268","tower":"B","floor":"4","pos":"05","view":"ใน","dir":"เหนือ","type":"1BR EXC 1","plan":"B1-05S","area":27.29,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":3374000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":3174000,"freeTransferValue":50000,"onHand1":33740,"onHand2":23580,"onHandTotal":57320,"totalDiscount":307320,"finalNet":3066680},{"no":22,"plot":"B0407","house":"53/270","tower":"B","floor":"4","pos":"07","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-04S","area":27.3,"statusBK":"ดาวน์","status":"รอยกเลิก Sale","listPrice":3072000,"pro1":200000,"pro2":184320,"pro3":50000,"proTotal":434320,"netAfterPro":2637680,"freeTransferValue":41509,"onHand1":30720,"onHand2":23592,"onHandTotal":54312,"totalDiscount":530141,"finalNet":2541859},{"no":23,"plot":"B0410","house":"53/273","tower":"B","floor":"4","pos":"10","view":"นอก","dir":"ใต้","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"รอยกเลิก CS","listPrice":2953000,"pro1":200000,"pro2":177180,"pro3":50000,"proTotal":427180,"netAfterPro":2525820,"freeTransferValue":40876,"onHand1":29530,"onHand2":23208,"onHandTotal":52738,"totalDiscount":520794,"finalNet":2432206},{"no":24,"plot":"B0412","house":"53/275","tower":"B","floor":"4","pos":"12","view":"นอก","dir":"ใต้","type":"1BR Extra","plan":"C2-02S","area":31.3,"statusBK":"จอง","status":"รอยกเลิก Sale","listPrice":3559000,"pro1":300000,"pro2":213540,"pro3":50000,"proTotal":563540,"netAfterPro":2995460,"freeTransferValue":47118,"onHand1":35590,"onHand2":27048,"onHandTotal":62638,"totalDiscount":673296,"finalNet":2885704},{"no":25,"plot":"B0413","house":"53/276","tower":"B","floor":"4","pos":"13","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-03S","area":26.94,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2902000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2702000,"freeTransferValue":50000,"onHand1":29020,"onHand2":23280,"onHandTotal":52300,"totalDiscount":302300,"finalNet":2599700},{"no":26,"plot":"B0414","house":"53/277","tower":"B","floor":"4","pos":"14","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-02S","area":26.59,"statusBK":"จอง","status":"รอยกเลิก Sale","listPrice":2868000,"pro1":200000,"pro2":172080,"pro3":50000,"proTotal":422080,"netAfterPro":2445920,"freeTransferValue":40503,"onHand1":28680,"onHand2":22980,"onHandTotal":51660,"totalDiscount":514243,"finalNet":2353757},{"no":27,"plot":"B0418","house":"53/281","tower":"B","floor":"4","pos":"18","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-02S","area":27.06,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2920000,"pro1":200000,"pro2":175200,"pro3":50000,"proTotal":425200,"netAfterPro":2494800,"freeTransferValue":41164,"onHand1":29200,"onHand2":23388,"onHandTotal":52588,"totalDiscount":518952,"finalNet":2401048},{"no":28,"plot":"B0501","house":"53/282","tower":"B","floor":"5","pos":"01","view":"ใน","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-08S","area":28.22,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3520000,"pro1":200000,"pro2":211200,"pro3":50000,"proTotal":461200,"netAfterPro":3058800,"freeTransferValue":42830,"onHand1":35200,"onHand2":24384,"onHandTotal":59584,"totalDiscount":563614,"finalNet":2956386},{"no":29,"plot":"B0502","house":"53/283","tower":"B","floor":"5","pos":"02","view":"ใน","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-10S","area":29.09,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":3585000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":3385000,"freeTransferValue":50000,"onHand1":35850,"onHand2":25140,"onHandTotal":60990,"totalDiscount":310990,"finalNet":3274010},{"no":30,"plot":"B0504","house":"53/285","tower":"B","floor":"5","pos":"04","view":"ใน","dir":"เหนือ","type":"1BR","plan":"A2-01S","area":23.44,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2618000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2418000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2368000},{"no":31,"plot":"B0505","house":"53/286","tower":"B","floor":"5","pos":"05","view":"ใน","dir":"เหนือ","type":"1BR EXC 1","plan":"B1-05S","area":27.1,"statusBK":"สัญญา","status":"แนวโน้มไม่โอน/CS","listPrice":3443000,"pro1":200000,"pro2":206580,"pro3":50000,"proTotal":456580,"netAfterPro":2986420,"freeTransferValue":41529,"onHand1":34430,"onHand2":23580,"onHandTotal":58010,"totalDiscount":556119,"finalNet":2886881},{"no":32,"plot":"B0506","house":"53/287","tower":"B","floor":"5","pos":"06","view":"ใน","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-01S","area":26.73,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3385000,"pro1":200000,"pro2":203100,"pro3":50000,"proTotal":453100,"netAfterPro":2931900,"freeTransferValue":40748,"onHand1":33850,"onHand2":23100,"onHandTotal":56950,"totalDiscount":550798,"finalNet":2834202},{"no":33,"plot":"B0507","house":"53/288","tower":"B","floor":"5","pos":"07","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-04S","area":27.3,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3140000,"pro1":200000,"pro2":188400,"pro3":50000,"proTotal":438400,"netAfterPro":2701600,"freeTransferValue":41516,"onHand1":31400,"onHand2":23592,"onHandTotal":54992,"totalDiscount":534908,"finalNet":2605092},{"no":34,"plot":"B0508","house":"53/289","tower":"B","floor":"5","pos":"08","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-01S","area":26.52,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":3048000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2848000,"freeTransferValue":50000,"onHand1":30480,"onHand2":22920,"onHandTotal":53400,"totalDiscount":303400,"finalNet":2744600},{"no":35,"plot":"B0510","house":"53/291","tower":"B","floor":"5","pos":"10","view":"นอก","dir":"ใต้","type":"1BR EXC 2","plan":"B3-03S","area":26.85,"statusBK":"ห้องว่าง","status":"ห้องแต่งขาย","listPrice":3170000,"pro1":200000,"pro2":190200,"pro3":50000,"proTotal":440200,"netAfterPro":2729800,"freeTransferValue":40898,"onHand1":31700,"onHand2":23208,"onHandTotal":54908,"totalDiscount":536006,"finalNet":2633994},{"no":36,"plot":"B0512","house":"53/293","tower":"B","floor":"5","pos":"12","view":"นอก","dir":"ใต้","type":"1BR Extra","plan":"C2-02S","area":31.3,"statusBK":"สัญญา","status":"Deviate","listPrice":3638000,"pro1":300000,"pro2":218280,"pro3":50000,"proTotal":568280,"netAfterPro":3069720,"freeTransferValue":47126,"onHand1":36380,"onHand2":27048,"onHandTotal":63428,"totalDiscount":678834,"finalNet":2959166},{"no":37,"plot":"B0513","house":"53/294","tower":"B","floor":"5","pos":"13","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-03S","area":26.94,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2969000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2769000,"freeTransferValue":50000,"onHand1":29690,"onHand2":23280,"onHandTotal":52970,"totalDiscount":302970,"finalNet":2666030},{"no":38,"plot":"B0516","house":"53/297","tower":"B","floor":"5","pos":"16","view":"นอก","dir":"ตะวันตก","type":"1BR","plan":"A1-02S","area":23.22,"statusBK":"จอง","status":"แนวโน้มไม่โอน/Sale","listPrice":2544000,"pro1":200000,"pro2":152640,"pro3":50000,"proTotal":402640,"netAfterPro":2141360,"freeTransferValue":35782,"onHand1":25440,"onHand2":20064,"onHandTotal":45504,"totalDiscount":483926,"finalNet":2060074},{"no":39,"plot":"B0517","house":"53/298","tower":"B","floor":"5","pos":"17","view":"นอก","dir":"ตะวันตก","type":"1BR","plan":"A1-02M","area":23.22,"statusBK":"จอง","status":"รอยกเลิก Sale","listPrice":2544000,"pro1":200000,"pro2":152640,"pro3":50000,"proTotal":402640,"netAfterPro":2141360,"freeTransferValue":35782,"onHand1":25440,"onHand2":20064,"onHandTotal":45504,"totalDiscount":483926,"finalNet":2060074},{"no":40,"plot":"B0518","house":"53/299","tower":"B","floor":"5","pos":"18","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-02S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2988000,"pro1":200000,"pro2":179280,"pro3":50000,"proTotal":429280,"netAfterPro":2558720,"freeTransferValue":41170,"onHand1":29880,"onHand2":23388,"onHandTotal":53268,"totalDiscount":523718,"finalNet":2464282},{"no":41,"plot":"B0601","house":"53/300","tower":"B","floor":"6","pos":"01","view":"ใน","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-08S","area":28.22,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3608000,"pro1":200000,"pro2":216480,"pro3":50000,"proTotal":466480,"netAfterPro":3141520,"freeTransferValue":42839,"onHand1":36080,"onHand2":24384,"onHandTotal":60464,"totalDiscount":569783,"finalNet":3038217},{"no":42,"plot":"B0604","house":"53/303","tower":"B","floor":"6","pos":"04","view":"ใน","dir":"เหนือ","type":"1BR","plan":",","area":23.44,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2690000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2490000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2440000},{"no":43,"plot":"B0605","house":"53/304","tower":"B","floor":"6","pos":"05","view":"ใน","dir":"เหนือ","type":"1BR EXC 1","plan":"B1-05S","area":27.29,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3527000,"pro1":200000,"pro2":211620,"pro3":50000,"proTotal":461620,"netAfterPro":3065380,"freeTransferValue":41537,"onHand1":35270,"onHand2":23580,"onHandTotal":58850,"totalDiscount":562007,"finalNet":2964993},{"no":44,"plot":"B0606","house":"53/305","tower":"B","floor":"6","pos":"06","view":"ใน","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-01S","area":26.73,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3468000,"pro1":200000,"pro2":208080,"pro3":50000,"proTotal":458080,"netAfterPro":3009920,"freeTransferValue":40757,"onHand1":34680,"onHand2":23100,"onHandTotal":57780,"totalDiscount":556617,"finalNet":2911383},{"no":45,"plot":"B0609","house":"53/308","tower":"B","floor":"6","pos":"09","view":"นอก","dir":"ใต้","type":"1BR","plan":"A1-01S","area":23.14,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2707000,"pro1":200000,"pro2":162420,"pro3":50000,"proTotal":412420,"netAfterPro":2294580,"freeTransferValue":35696,"onHand1":27070,"onHand2":20004,"onHandTotal":47074,"totalDiscount":495190,"finalNet":2211810},{"no":46,"plot":"B0610","house":"53/309","tower":"B","floor":"6","pos":"10","view":"นอก","dir":"ใต้","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3104000,"pro1":200000,"pro2":186240,"pro3":50000,"proTotal":436240,"netAfterPro":2667760,"freeTransferValue":40892,"onHand1":31040,"onHand2":23208,"onHandTotal":54248,"totalDiscount":531380,"finalNet":2572621},{"no":47,"plot":"B0611","house":"53/310","tower":"B","floor":"6","pos":"11","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-01M","area":26.52,"statusBK":"ห้องว่าง","status":"ห้องเก็บของ","listPrice":3069000,"pro1":200000,"pro2":184140,"pro3":50000,"proTotal":434140,"netAfterPro":2634860,"freeTransferValue":40426,"onHand1":30690,"onHand2":22920,"onHandTotal":53610,"totalDiscount":528176,"finalNet":2540824},{"no":48,"plot":"B0612","house":"53/311","tower":"B","floor":"6","pos":"12","view":"นอก","dir":"ใต้","type":"1BR Extra","plan":"C2-02S","area":31.3,"statusBK":"จอง","status":"รอยกเลิก Sale","listPrice":3735000,"pro1":300000,"pro2":224100,"pro3":50000,"proTotal":574100,"netAfterPro":3160900,"freeTransferValue":47135,"onHand1":37350,"onHand2":27048,"onHandTotal":64398,"totalDiscount":685633,"finalNet":3049367},{"no":49,"plot":"B0613","house":"53/312","tower":"B","floor":"6","pos":"13","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-03S","area":26.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3054000,"pro1":200000,"pro2":183240,"pro3":50000,"proTotal":433240,"netAfterPro":2620760,"freeTransferValue":41006,"onHand1":30540,"onHand2":23280,"onHandTotal":53820,"totalDiscount":528066,"finalNet":2525934},{"no":50,"plot":"B0614","house":"53/313","tower":"B","floor":"6","pos":"14","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-02S","area":26.6,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3018000,"pro1":200000,"pro2":181080,"pro3":50000,"proTotal":431080,"netAfterPro":2586920,"freeTransferValue":40518,"onHand1":30180,"onHand2":22980,"onHandTotal":53160,"totalDiscount":524758,"finalNet":2493242},{"no":51,"plot":"B0615","house":"53/314","tower":"B","floor":"6","pos":"15","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-02M","area":26.6,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3018000,"pro1":200000,"pro2":181080,"pro3":50000,"proTotal":431080,"netAfterPro":2586920,"freeTransferValue":40518,"onHand1":30180,"onHand2":22980,"onHandTotal":53160,"totalDiscount":524758,"finalNet":2493242},{"no":52,"plot":"B0616","house":"53/315","tower":"B","floor":"6","pos":"16","view":"นอก","dir":"ตะวันตก","type":"1BR","plan":"A1-02S","area":23.2,"statusBK":"จบสัญญา","status":"โอนแล้ว","listPrice":2617000,"pro1":200000,"pro2":null,"pro3":null,"proTotal":200000,"netAfterPro":2417000,"freeTransferValue":50000,"onHand1":null,"onHand2":null,"onHandTotal":0,"totalDiscount":250000,"finalNet":2367000},{"no":53,"plot":"B0617","house":"53/316","tower":"B","floor":"6","pos":"17","view":"นอก","dir":"ตะวันตก","type":"1BR","plan":"A1-02M","area":23.2,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2617000,"pro1":200000,"pro2":157020,"pro3":50000,"proTotal":407020,"netAfterPro":2209980,"freeTransferValue":35789,"onHand1":26170,"onHand2":20064,"onHandTotal":46234,"totalDiscount":489043,"finalNet":2127957},{"no":54,"plot":"B0618","house":"53/317","tower":"B","floor":"6","pos":"18","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-02S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3072000,"pro1":200000,"pro2":184320,"pro3":50000,"proTotal":434320,"netAfterPro":2637680,"freeTransferValue":41179,"onHand1":30720,"onHand2":23388,"onHandTotal":54108,"totalDiscount":529607,"finalNet":2542393},{"no":55,"plot":"B0701","house":"53/318","tower":"B","floor":"7","pos":"01","view":"ใน","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-08S","area":28.1,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3713000,"pro1":200000,"pro2":222780,"pro3":50000,"proTotal":472780,"netAfterPro":3240220,"freeTransferValue":42849,"onHand1":37130,"onHand2":24384,"onHandTotal":61514,"totalDiscount":577143,"finalNet":3135857},{"no":56,"plot":"B0702","house":"53/319","tower":"B","floor":"7","pos":"02","view":"ใน","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-10S","area":29,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3785000,"pro1":200000,"pro2":227100,"pro3":50000,"proTotal":477100,"netAfterPro":3307900,"freeTransferValue":44070,"onHand1":37850,"onHand2":25140,"onHandTotal":62990,"totalDiscount":584160,"finalNet":3200840},{"no":57,"plot":"B0703","house":"53/320","tower":"B","floor":"7","pos":"03","view":"ใน","dir":"ตะวันออก","type":"1BR Extra","plan":"C3-01S","area":31.9,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3924000,"pro1":300000,"pro2":235440,"pro3":50000,"proTotal":585440,"netAfterPro":3338560,"freeTransferValue":48522,"onHand1":39240,"onHand2":27900,"onHandTotal":67140,"totalDiscount":701102,"finalNet":3222898},{"no":58,"plot":"B0704","house":"53/321","tower":"B","floor":"7","pos":"04","view":"ใน","dir":"เหนือ","type":"1BR","plan":"A2-01S","area":23.3,"statusBK":"ดาวน์","status":"รอยกเลิก CS","listPrice":2778000,"pro1":200000,"pro2":166680,"pro3":50000,"proTotal":416680,"netAfterPro":2361320,"freeTransferValue":36113,"onHand1":27780,"onHand2":20256,"onHandTotal":48036,"totalDiscount":500829,"finalNet":2277171},{"no":59,"plot":"B0705","house":"53/322","tower":"B","floor":"7","pos":"05","view":"ใน","dir":"เหนือ","type":"1BR EXC 1","plan":"B1-05S","area":27.1,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3629000,"pro1":200000,"pro2":217740,"pro3":50000,"proTotal":467740,"netAfterPro":3161260,"freeTransferValue":41547,"onHand1":36290,"onHand2":23580,"onHandTotal":59870,"totalDiscount":569157,"finalNet":3059843},{"no":60,"plot":"B0706","house":"53/323","tower":"B","floor":"7","pos":"06","view":"ใน","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-01S","area":26.73,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3568000,"pro1":200000,"pro2":214080,"pro3":50000,"proTotal":464080,"netAfterPro":3103920,"freeTransferValue":40767,"onHand1":35680,"onHand2":23100,"onHandTotal":58780,"totalDiscount":563627,"finalNet":3004373},{"no":61,"plot":"B0707","house":"53/324","tower":"B","floor":"7","pos":"07","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-04S","area":27.3,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3328000,"pro1":200000,"pro2":199680,"pro3":50000,"proTotal":449680,"netAfterPro":2878320,"freeTransferValue":41535,"onHand1":33280,"onHand2":23592,"onHandTotal":56872,"totalDiscount":548087,"finalNet":2779913},{"no":62,"plot":"B0708","house":"53/325","tower":"B","floor":"7","pos":"08","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-01S","area":26.5,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3230000,"pro1":200000,"pro2":193800,"pro3":50000,"proTotal":443800,"netAfterPro":2786200,"freeTransferValue":40443,"onHand1":32300,"onHand2":22920,"onHandTotal":55220,"totalDiscount":539463,"finalNet":2690537},{"no":63,"plot":"B0709","house":"53/326","tower":"B","floor":"7","pos":"09","view":"นอก","dir":"ใต้","type":"1BR","plan":"A1-01S","area":22.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2792000,"pro1":200000,"pro2":167520,"pro3":50000,"proTotal":417520,"netAfterPro":2374480,"freeTransferValue":35705,"onHand1":27920,"onHand2":20004,"onHandTotal":47924,"totalDiscount":501149,"finalNet":2290851},{"no":64,"plot":"B0710","house":"53/327","tower":"B","floor":"7","pos":"10","view":"นอก","dir":"ใต้","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3204000,"pro1":200000,"pro2":192240,"pro3":50000,"proTotal":442240,"netAfterPro":2761760,"freeTransferValue":40902,"onHand1":32040,"onHand2":23208,"onHandTotal":55248,"totalDiscount":538390,"finalNet":2665611},{"no":65,"plot":"B0711","house":"53/328","tower":"B","floor":"7","pos":"11","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-01M","area":26.5,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3168000,"pro1":200000,"pro2":190080,"pro3":50000,"proTotal":440080,"netAfterPro":2727920,"freeTransferValue":40436,"onHand1":31680,"onHand2":22920,"onHandTotal":54600,"totalDiscount":535116,"finalNet":2632884},{"no":66,"plot":"B0712","house":"53/329","tower":"B","floor":"7","pos":"12","view":"นอก","dir":"ใต้","type":"1BR Extra","plan":"C2-02S","area":31.3,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3853000,"pro1":300000,"pro2":231180,"pro3":50000,"proTotal":581180,"netAfterPro":3271820,"freeTransferValue":47147,"onHand1":38530,"onHand2":27048,"onHandTotal":65578,"totalDiscount":693905,"finalNet":3159095},{"no":67,"plot":"B0713","house":"53/330","tower":"B","floor":"7","pos":"13","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-03S","area":26.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3154000,"pro1":200000,"pro2":189240,"pro3":50000,"proTotal":439240,"netAfterPro":2714760,"freeTransferValue":41016,"onHand1":31540,"onHand2":23280,"onHandTotal":54820,"totalDiscount":535076,"finalNet":2618924},{"no":68,"plot":"B0714","house":"53/331","tower":"B","floor":"7","pos":"14","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-02S","area":26.6,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3118000,"pro1":200000,"pro2":187080,"pro3":50000,"proTotal":437080,"netAfterPro":2680920,"freeTransferValue":40528,"onHand1":31180,"onHand2":22980,"onHandTotal":54160,"totalDiscount":531768,"finalNet":2586232},{"no":69,"plot":"B0715","house":"53/332","tower":"B","floor":"7","pos":"15","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-02M","area":26.59,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3118000,"pro1":200000,"pro2":187080,"pro3":50000,"proTotal":437080,"netAfterPro":2680920,"freeTransferValue":40528,"onHand1":31180,"onHand2":22980,"onHandTotal":54160,"totalDiscount":531768,"finalNet":2586232},{"no":70,"plot":"B0716","house":"53/333","tower":"B","floor":"7","pos":"16","view":"นอก","dir":"ตะวันตก","type":"1BR","plan":"A1-02S","area":23.22,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2703000,"pro1":200000,"pro2":162180,"pro3":50000,"proTotal":412180,"netAfterPro":2290820,"freeTransferValue":35798,"onHand1":27030,"onHand2":20064,"onHandTotal":47094,"totalDiscount":495072,"finalNet":2207928},{"no":71,"plot":"B0717","house":"53/334","tower":"B","floor":"7","pos":"17","view":"นอก","dir":"ตะวันตก","type":"1BR","plan":"A1-02M","area":23.2,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2703000,"pro1":200000,"pro2":162180,"pro3":50000,"proTotal":412180,"netAfterPro":2290820,"freeTransferValue":35798,"onHand1":27030,"onHand2":20064,"onHandTotal":47094,"totalDiscount":495072,"finalNet":2207928},{"no":72,"plot":"B0718","house":"53/335","tower":"B","floor":"7","pos":"18","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-02S","area":26.8,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3172000,"pro1":200000,"pro2":190320,"pro3":50000,"proTotal":440320,"netAfterPro":2731680,"freeTransferValue":41189,"onHand1":31720,"onHand2":23388,"onHandTotal":55108,"totalDiscount":536617,"finalNet":2635383},{"no":73,"plot":"B0801","house":"53/336","tower":"B","floor":"8","pos":"01","view":"ใน","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-08S","area":28.1,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3819000,"pro1":200000,"pro2":229140,"pro3":50000,"proTotal":479140,"netAfterPro":3339860,"freeTransferValue":42877,"onHand1":38190,"onHand2":24396,"onHandTotal":62586,"totalDiscount":584603,"finalNet":3234397},{"no":74,"plot":"B0802","house":"53/337","tower":"B","floor":"8","pos":"02","view":"ใน","dir":"ตะวันออก","type":"1BR EXC 1","plan":"B1-10S","area":29,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3894000,"pro1":200000,"pro2":233640,"pro3":50000,"proTotal":483640,"netAfterPro":3410360,"freeTransferValue":44098,"onHand1":38940,"onHand2":25152,"onHandTotal":64092,"totalDiscount":591830,"finalNet":3302170},{"no":75,"plot":"B0803","house":"53/338","tower":"B","floor":"8","pos":"03","view":"ใน","dir":"ตะวันออก","type":"1BR Extra","plan":"C3-01S","area":31.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":4043000,"pro1":300000,"pro2":242580,"pro3":50000,"proTotal":592580,"netAfterPro":3450420,"freeTransferValue":48539,"onHand1":40430,"onHand2":27900,"onHandTotal":68330,"totalDiscount":709449,"finalNet":3333551},{"no":76,"plot":"B0804","house":"53/339","tower":"B","floor":"8","pos":"04","view":"ใน","dir":"เหนือ","type":"1BR","plan":"A2-01S","area":23.3,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2865000,"pro1":200000,"pro2":171900,"pro3":50000,"proTotal":421900,"netAfterPro":2443100,"freeTransferValue":36139,"onHand1":28650,"onHand2":20268,"onHandTotal":48918,"totalDiscount":506957,"finalNet":2358043},{"no":77,"plot":"B0805","house":"53/340","tower":"B","floor":"8","pos":"05","view":"ใน","dir":"เหนือ","type":"1BR EXC 1","plan":"B1-05S","area":27.1,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3730000,"pro1":200000,"pro2":223800,"pro3":50000,"proTotal":473800,"netAfterPro":3256200,"freeTransferValue":41575,"onHand1":37300,"onHand2":23592,"onHandTotal":60892,"totalDiscount":576267,"finalNet":3153733},{"no":78,"plot":"B0806","house":"53/341","tower":"B","floor":"8","pos":"06","view":"ใน","dir":"เหนือ","type":"1BR EXC 2","plan":"B3-01S","area":26.6,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3668000,"pro1":200000,"pro2":220080,"pro3":50000,"proTotal":470080,"netAfterPro":3197920,"freeTransferValue":40794,"onHand1":36680,"onHand2":23112,"onHandTotal":59792,"totalDiscount":570666,"finalNet":3097334},{"no":79,"plot":"B0807","house":"53/342","tower":"B","floor":"8","pos":"07","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-04S","area":27.3,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3430000,"pro1":200000,"pro2":205800,"pro3":50000,"proTotal":455800,"netAfterPro":2974200,"freeTransferValue":41562,"onHand1":34300,"onHand2":23604,"onHandTotal":57904,"totalDiscount":555266,"finalNet":2874734},{"no":80,"plot":"B0808","house":"53/343","tower":"B","floor":"8","pos":"08","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-01S","area":26.5,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3330000,"pro1":200000,"pro2":199800,"pro3":50000,"proTotal":449800,"netAfterPro":2880200,"freeTransferValue":40470,"onHand1":33300,"onHand2":22932,"onHandTotal":56232,"totalDiscount":546502,"finalNet":2783498},{"no":81,"plot":"B0809","house":"53/344","tower":"B","floor":"8","pos":"09","view":"นอก","dir":"ใต้","type":"1BR","plan":"A1-01S","area":23.15,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":2878000,"pro1":200000,"pro2":172680,"pro3":50000,"proTotal":422680,"netAfterPro":2455320,"freeTransferValue":35719,"onHand1":28780,"onHand2":20004,"onHandTotal":48784,"totalDiscount":507183,"finalNet":2370817},{"no":82,"plot":"B0810","house":"53/345","tower":"B","floor":"8","pos":"10","view":"นอก","dir":"ใต้","type":"1BR EXC 2","plan":"B3-03S","area":26.8,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3305000,"pro1":200000,"pro2":198300,"pro3":50000,"proTotal":448300,"netAfterPro":2856700,"freeTransferValue":40917,"onHand1":33050,"onHand2":23208,"onHandTotal":56258,"totalDiscount":545475,"finalNet":2759525},{"no":83,"plot":"B0811","house":"53/346","tower":"B","floor":"8","pos":"11","view":"นอก","dir":"ใต้","type":"1BR EXC 1","plan":"B1-01M","area":26.5,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3268000,"pro1":200000,"pro2":196080,"pro3":50000,"proTotal":446080,"netAfterPro":2821920,"freeTransferValue":40464,"onHand1":32680,"onHand2":22932,"onHandTotal":55612,"totalDiscount":542156,"finalNet":2725844},{"no":84,"plot":"B0812","house":"53/347","tower":"B","floor":"8","pos":"12","view":"นอก","dir":"ใต้","type":"1BR Extra","plan":"C2-02S","area":31.3,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3970000,"pro1":300000,"pro2":238200,"pro3":50000,"proTotal":588200,"netAfterPro":3381800,"freeTransferValue":47176,"onHand1":39700,"onHand2":27060,"onHandTotal":66760,"totalDiscount":702136,"finalNet":3267864},{"no":85,"plot":"B0813","house":"53/348","tower":"B","floor":"8","pos":"13","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-03S","area":26.9,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3255000,"pro1":200000,"pro2":195300,"pro3":50000,"proTotal":445300,"netAfterPro":2809700,"freeTransferValue":41043,"onHand1":32550,"onHand2":23292,"onHandTotal":55842,"totalDiscount":542185,"finalNet":2712815},{"no":86,"plot":"B0814","house":"53/349","tower":"B","floor":"8","pos":"14","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-02S","area":26.6,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3218000,"pro1":200000,"pro2":193080,"pro3":50000,"proTotal":443080,"netAfterPro":2774920,"freeTransferValue":40555,"onHand1":32180,"onHand2":22992,"onHandTotal":55172,"totalDiscount":538807,"finalNet":2679193},{"no":87,"plot":"B0815","house":"53/350","tower":"B","floor":"8","pos":"15","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 1","plan":"B1-02M","area":26.6,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":3218000,"pro1":200000,"pro2":193080,"pro3":50000,"proTotal":443080,"netAfterPro":2774920,"freeTransferValue":40555,"onHand1":32180,"onHand2":22992,"onHandTotal":55172,"totalDiscount":538807,"finalNet":2679193},{"no":88,"plot":"B0816","house":"53/351","tower":"B","floor":"8","pos":"16","view":"นอก","dir":"ตะวันตก","type":"1BR","plan":"A1-02S","area":23.2,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2790000,"pro1":200000,"pro2":167400,"pro3":50000,"proTotal":417400,"netAfterPro":2372600,"freeTransferValue":35824,"onHand1":27900,"onHand2":20076,"onHandTotal":47976,"totalDiscount":501200,"finalNet":2288800},{"no":89,"plot":"B0817","house":"53/352","tower":"B","floor":"8","pos":"17","view":"นอก","dir":"ตะวันตก","type":"1BR","plan":"A1-02M","area":23.2,"statusBK":"ดาวน์","status":"ห้องว่าง VIP","listPrice":2790000,"pro1":200000,"pro2":167400,"pro3":50000,"proTotal":417400,"netAfterPro":2372600,"freeTransferValue":35824,"onHand1":27900,"onHand2":20076,"onHandTotal":47976,"totalDiscount":501200,"finalNet":2288800},{"no":90,"plot":"B0818","house":"53/353","tower":"B","floor":"8","pos":"18","view":"นอก","dir":"ตะวันตก","type":"1BR EXC 2","plan":"B3-02S","area":26.8,"statusBK":"ห้องว่าง","status":"ห้องว่าง","listPrice":3273000,"pro1":200000,"pro2":196380,"pro3":50000,"proTotal":446380,"netAfterPro":2826620,"freeTransferValue":41216,"onHand1":32730,"onHand2":23400,"onHandTotal":56130,"totalDiscount":543726,"finalNet":2729274}]
+</script>
+<script>
+(function(){
+  "use strict";
+  var ROOMS = JSON.parse(document.getElementById('room-data').textContent);
+  /* units already transferred to a new owner must never surface to sales again */
+  ROOMS = ROOMS.filter(function(r){ return r.status !== 'โอนแล้ว'; });
+
+  var STATUS_META = {
+    'ห้องว่าง':          {bucket:'available',  label:'ห้องว่าง',        v:'--ok',      bg:'--ok-bg'},
+    'ห้องว่าง VIP':       {bucket:'availableVip',label:'ว่าง · VIP',     v:'--vip',     bg:'--vip-bg'},
+    'จอง':               {bucket:'reserved',   label:'จอง',            v:'--warn',    bg:'--warn-bg'},
+    'ล็อคนุ้ย':           {bucket:'reserved',   label:'ล็อค',           v:'--warn',    bg:'--warn-bg'},
+    'ยังไม่โอน':          {bucket:'inprocess',  label:'รอโอน',          v:'--info',    bg:'--info-bg'},
+    'นัดโอนแล้ว':         {bucket:'inprocess',  label:'นัดโอนแล้ว',      v:'--info',    bg:'--info-bg'},
+    'โอนแล้ว':            {bucket:'sold',       label:'โอนแล้ว',         v:'--muted',   bg:'--muted-bg'},
+    'รอยกเลิก Sale':      {bucket:'issue',      label:'รอยกเลิก (Sale)', v:'--danger',  bg:'--danger-bg'},
+    'รอยกเลิก CS':        {bucket:'issue',      label:'รอยกเลิก (CS)',   v:'--danger',  bg:'--danger-bg'},
+    'แนวโน้มไม่โอน/CS':    {bucket:'issue',      label:'เสี่ยงไม่โอน (CS)',v:'--danger', bg:'--danger-bg'},
+    'แนวโน้มไม่โอน/Sale':  {bucket:'issue',      label:'เสี่ยงไม่โอน (Sale)',v:'--danger',bg:'--danger-bg'},
+    'Deviate':            {bucket:'issue',      label:'Deviate',        v:'--danger',  bg:'--danger-bg'},
+    'ห้องตัวอย่าง':        {bucket:'special',    label:'ห้องตัวอย่าง',    v:'--special', bg:'--special-bg'},
+    'ห้องเซลล์':          {bucket:'special',    label:'ห้องเซลล์',      v:'--special', bg:'--special-bg'},
+    'ห้องแต่งขาย':         {bucket:'special',    label:'แต่งขาย',        v:'--special', bg:'--special-bg'},
+    'ห้อง MI':            {bucket:'special',    label:'ห้อง MI',        v:'--special', bg:'--special-bg'},
+    'พร้อมผู้เช่า':        {bucket:'special',    label:'พร้อมผู้เช่า',    v:'--special', bg:'--special-bg'},
+    'ห้องเก็บของ':         {bucket:'special',    label:'ห้องเก็บของ',    v:'--special', bg:'--special-bg'}
+  };
+  function statusMeta(s){ return STATUS_META[s] || {bucket:'special', label:s||'-', v:'--muted', bg:'--muted-bg'}; }
+
+  var QUICK = [
+    {key:'all', label:'ทั้งหมด', test:function(){return true;}},
+    {key:'available', label:'ว่าง', test:function(r){var b=statusMeta(r.status).bucket; return b==='available'||b==='availableVip';}},
+    {key:'reserved', label:'จอง/ล็อค', test:function(r){return statusMeta(r.status).bucket==='reserved';}},
+    {key:'inprocess', label:'ระหว่างโอน', test:function(r){return statusMeta(r.status).bucket==='inprocess';}},
+    {key:'issue', label:'ติดปัญหา', test:function(r){return statusMeta(r.status).bucket==='issue';}},
+    {key:'special', label:'อื่นๆ', test:function(r){return statusMeta(r.status).bucket==='special';}}
+  ];
+
+  function uniq(arr){ return arr.filter(function(v,i){return arr.indexOf(v)===i;}); }
+  var TOWERS = uniq(ROOMS.map(function(r){return r.tower;})).sort();
+  var FLOORS = uniq(ROOMS.map(function(r){return r.floor;})).sort(function(a,b){return (+a)-(+b);});
+  var TYPES = uniq(ROOMS.map(function(r){return r.type;}));
+  var VIEWS = uniq(ROOMS.map(function(r){return r.view;}));
+  var DIRS = uniq(ROOMS.map(function(r){return r.dir;}));
+  var STATUSES = uniq(ROOMS.map(function(r){return r.status;}));
+  var PRICE_MIN = Math.min.apply(null, ROOMS.map(function(r){return r.finalNet;}));
+  var PRICE_MAX = Math.max.apply(null, ROOMS.map(function(r){return r.finalNet;}));
+
+  var state = {
+    q:'', quick:null, towers:[], floors:[], statuses:[], types:[], views:[], dirs:[],
+    priceMin:PRICE_MIN, priceMax:PRICE_MAX, sort:'default', openId:null,
+    forceShow:false, lastSingleId:null
+  };
+
+  function fmtBaht(n){ if(n==null) return '-'; return Math.round(n).toLocaleString('th-TH'); }
+  function fmtArea(n){ if(n==null) return '-'; return (Math.round(n*100)/100).toLocaleString('th-TH'); }
+
+  function el(tag, cls, html){
+    var e = document.createElement(tag);
+    if(cls) e.className = cls;
+    if(html!=null) e.innerHTML = html;
+    return e;
+  }
+
+  function multiToggle(list, val){
+    var i = list.indexOf(val);
+    if(i>-1) list.splice(i,1); else list.push(val);
+  }
+
+  /* ---------- quick chips ---------- */
+  var quickChipsEl = document.getElementById('quickChips');
+  function renderQuickChips(){
+    quickChipsEl.innerHTML='';
+    QUICK.forEach(function(q){
+      var count = ROOMS.filter(q.test).length;
+      var b = el('button','chip', q.label+' <span class="n">'+count+'</span>');
+      b.setAttribute('aria-pressed', state.quick===q.key ? 'true':'false');
+      b.addEventListener('click', function(){
+        state.quick = (state.quick===q.key) ? null : q.key;
+        renderQuickChips(); applyAndRender();
+      });
+      quickChipsEl.appendChild(b);
+    });
+  }
+
+  /* ---------- filter sheet builders ---------- */
+  function buildToggleGroup(containerId, values, selectedArr, labelFn, statusColor){
+    var c = document.getElementById(containerId);
+    c.innerHTML='';
+    values.forEach(function(v){
+      var meta = statusColor ? statusMeta(v) : null;
+      var b = el('button','fchip'+(statusColor?' status-chip':''), labelFn(v));
+      if(meta){ b.style.setProperty('--sc', 'var('+meta.v+')'); }
+      b.setAttribute('aria-pressed', selectedArr.indexOf(v)>-1 ? 'true':'false');
+      b.addEventListener('click', function(){
+        multiToggle(selectedArr, v);
+        b.setAttribute('aria-pressed', selectedArr.indexOf(v)>-1 ? 'true':'false');
+        updateApplyCount(); syncFilterDot();
+      });
+      c.appendChild(b);
+    });
+  }
+
+  function countForStatus(v){ return ROOMS.filter(function(r){return r.status===v;}).length; }
+
+  function renderFilterSheet(){
+    buildToggleGroup('fTower', TOWERS, state.towers, function(v){return 'ตึก '+v;});
+    buildToggleGroup('fFloor', FLOORS, state.floors, function(v){return 'ชั้น '+v;});
+    buildToggleGroup('fStatus', STATUSES, state.statuses, function(v){
+      var m = statusMeta(v); return m.label+' <span class="n">'+countForStatus(v)+'</span>';
+    }, true);
+    buildToggleGroup('fType', TYPES, state.types, function(v){return v;});
+    buildToggleGroup('fView', VIEWS, state.views, function(v){return v==='นอก' ? 'วิวนอก' : 'วิวใน';});
+    buildToggleGroup('fDir', DIRS, state.dirs, function(v){return 'ทิศ'+v;});
+    initRange();
+  }
+
+  /* ---------- price range slider ---------- */
+  var minInput = document.getElementById('priceMin');
+  var maxInput = document.getElementById('priceMax');
+  function initRange(){
+    [minInput,maxInput].forEach(function(inp){
+      inp.min = Math.floor(PRICE_MIN/1000)*1000;
+      inp.max = Math.ceil(PRICE_MAX/1000)*1000;
+      inp.step = 1; /* fine step so the true min/max data points stay reachable (a coarser step snaps and silently excludes edge units) */
+    });
+    minInput.value = state.priceMin;
+    maxInput.value = state.priceMax;
+    updateRangeUI();
+  }
+  function updateRangeUI(){
+    var lo = Math.min(+minInput.value, +maxInput.value);
+    var hi = Math.max(+minInput.value, +maxInput.value);
+    state.priceMin = lo; state.priceMax = hi;
+    document.getElementById('priceMinLabel').textContent = fmtBaht(lo)+' ฿';
+    document.getElementById('priceMaxLabel').textContent = fmtBaht(hi)+' ฿';
+    var span = (+maxInput.max)-(+maxInput.min) || 1;
+    var l = ((lo-(+maxInput.min))/span)*100;
+    var r = ((hi-(+maxInput.min))/span)*100;
+    var fill = document.getElementById('rangeFill');
+    fill.style.left = l+'%'; fill.style.right = (100-r)+'%';
+    updateApplyCount();
+  }
+  minInput.addEventListener('input', updateRangeUI);
+  maxInput.addEventListener('input', updateRangeUI);
+
+  /* ---------- filtering ---------- */
+  function hasActiveQuery(){
+    return !!state.q.trim() || !!state.quick ||
+      state.towers.length>0 || state.floors.length>0 || state.statuses.length>0 ||
+      state.types.length>0 || state.views.length>0 || state.dirs.length>0 ||
+      state.priceMin>PRICE_MIN || state.priceMax<PRICE_MAX || state.forceShow;
+  }
+
+  function matches(r){
+    if(state.quick){
+      var qd = QUICK.find(function(q){return q.key===state.quick;});
+      if(qd && !qd.test(r)) return false;
+    }
+    if(state.towers.length && state.towers.indexOf(r.tower)===-1) return false;
+    if(state.floors.length && state.floors.indexOf(r.floor)===-1) return false;
+    if(state.statuses.length && state.statuses.indexOf(r.status)===-1) return false;
+    if(state.types.length && state.types.indexOf(r.type)===-1) return false;
+    if(state.views.length && state.views.indexOf(r.view)===-1) return false;
+    if(state.dirs.length && state.dirs.indexOf(r.dir)===-1) return false;
+    if(r.finalNet < state.priceMin || r.finalNet > state.priceMax) return false;
+    if(state.q){
+      var hay = (r.house+' '+r.plot+' '+r.plan+' '+r.tower+r.floor+r.pos).toLowerCase();
+      if(hay.indexOf(state.q.toLowerCase())===-1) return false;
+    }
+    return true;
+  }
+
+  function sortRooms(list){
+    var s = state.sort;
+    var copy = list.slice();
+    if(s==='price-asc') copy.sort(function(a,b){return a.finalNet-b.finalNet;});
+    else if(s==='price-desc') copy.sort(function(a,b){return b.finalNet-a.finalNet;});
+    else if(s==='floor-asc') copy.sort(function(a,b){return (+a.floor)-(+b.floor) || a.pos.localeCompare(b.pos);});
+    else if(s==='floor-desc') copy.sort(function(a,b){return (+b.floor)-(+a.floor) || a.pos.localeCompare(b.pos);});
+    else if(s==='area-desc') copy.sort(function(a,b){return b.area-a.area;});
+    else copy.sort(function(a,b){return a.no-b.no;});
+    return copy;
+  }
+
+  function updateApplyCount(){
+    var n = ROOMS.filter(matches).length;
+    document.getElementById('applyCount').textContent = n;
+  }
+
+  function syncFilterDot(){
+    var active = state.towers.length||state.floors.length||state.statuses.length||state.types.length||state.views.length||state.dirs.length||state.priceMin>PRICE_MIN||state.priceMax<PRICE_MAX;
+    document.getElementById('openFilter').classList.toggle('active', !!active);
+  }
+
+  /* ---------- render list ---------- */
+  var listEl = document.getElementById('roomList');
+
+  function ladderRow(k,v,opts){
+    opts = opts||{};
+    return '<div class="li'+(opts.sub?' sub':'')+(opts.neg?' neg':'')+(opts.total?' total':'')+'">'+
+      '<span class="k">'+k+'</span><span class="v num">'+v+'</span></div>';
+  }
+
+  function cardHTML(r){
+    var meta = statusMeta(r.status);
+    var open = state.openId === r.no;
+    var badge = '<span class="badge" style="color:var('+meta.v+');background:var('+meta.bg+')">'+meta.label+'</span>';
+    var head = ''+
+      '<div class="unit-id"><div class="house num">'+r.plot+'</div><div class="loc">'+r.house+'</div></div>'+
+      '<div class="unit-mid">'+
+        '<div class="row1"><span class="type">'+r.type+'</span><span class="plan">'+(r.plan||'')+'</span></div>'+
+        '<div class="row2"><span>ตึก '+r.tower+' ชั้น '+r.floor+'-'+r.pos+'</span><span>'+fmtArea(r.area)+' ตร.ม.</span><span>วิว'+(r.view==='นอก'?'นอก':'ใน')+' · ทิศ'+r.dir+'</span></div>'+
+        '<div class="row2">'+badge+'</div>'+
+      '</div>'+
+      '<div class="unit-price"><div class="final num">'+fmtBaht(r.listPrice)+'</div><div class="net num">สุทธิ '+fmtBaht(r.netAfterPro)+'</div></div>'+
+      '<svg class="chev" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    var ladder = '<div class="ladder">'+
+      ladderRow('ราคาขาย', fmtBaht(r.listPrice)+' ฿')+
+      ladderRow('ส่วนลดลงทะเบียน (PRO1)', fmtBaht(r.pro1)+' ฿', {sub:true,neg:true})+
+      ladderRow('อยู่ฟรี 2 ปี ล้านละ 2,500 บาท LH (PRO2)', fmtBaht(r.pro2)+' ฿', {sub:true,neg:true})+
+      ladderRow('เครื่องใช้ไฟฟ้า 9 รายการ (PRO3)', fmtBaht(r.pro3)+' ฿', {sub:true,neg:true})+
+      ladderRow('รวมส่วนลด PRO #1-3', fmtBaht(r.proTotal)+' ฿', {subtotal:true})+
+      '<hr>'+
+      ladderRow('ราคาสุทธิ (หลังโปรโมชั่น)', fmtBaht(r.netAfterPro)+' ฿', {total:true})+
+    '</div>'+
+    '<div class="sales-note">'+
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 5.5L20 9l-4.4 3.8L17 19l-5-3.3L7 19l1.4-6.2L4 9l5.6-1.5L12 2z" fill="currentColor"/></svg>'+
+      '<div class="txt"><b>ส่วนลดเพิ่มเติมสำหรับทีมขาย (On Hand)</b> — ใช้เจรจาต่อรองกับลูกค้าเป็นรายกรณี ไม่ต้องเสนอทันทีจนกว่าจำเป็น</div>'+
+    '</div>'+
+    '<div class="ladder" style="padding-top:8px">'+
+      ladderRow('ส่วนลด B2B / ราชการ กทม. (On Hand #1)', fmtBaht(r.onHand1)+' ฿', {sub:true,neg:true})+
+      ladderRow('ส่วนกลางปีที่ 2 (On Hand #2)', fmtBaht(r.onHand2)+' ฿', {sub:true,neg:true})+
+      ladderRow('รวม On Hand #1-2', fmtBaht(r.onHandTotal)+' ฿', {subtotal:true})+
+      ladderRow('มูลค่าฟรีค่าใช้จ่ายโอน 7 รายการ', fmtBaht(r.freeTransferValue)+' ฿', {neg:true})+
+      '<hr>'+
+      ladderRow('รวมส่วนลดทั้งหมด', fmtBaht(r.totalDiscount)+' ฿', {total:true})+
+    '</div>'+
+    '<div class="final-net">'+
+      '<div class="lab">ราคา Net สุดท้าย<small>ราคาต่ำสุดที่เสนอลูกค้าได้ ห้ามลดเพิ่ม</small></div>'+
+      '<div class="amt num">'+fmtBaht(r.finalNet)+' ฿</div>'+
+    '</div>';
+
+    var card = el('div','card');
+    card.dataset.open = open ? 'true':'false';
+    card.dataset.id = r.no;
+    var headEl = el('div','card-head'); headEl.innerHTML = head;
+    headEl.addEventListener('click', function(){
+      state.openId = (state.openId===r.no) ? null : r.no;
+      render();
+    });
+    var detailEl = el('div','card-detail');
+    var inner = el('div'); var innerInner = el('div','detail-inner', ladder);
+    inner.appendChild(innerInner);
+    detailEl.appendChild(inner);
+    card.appendChild(headEl);
+    card.appendChild(detailEl);
+    return card;
+  }
+
+  function render(){
+    document.getElementById('statTotal').textContent = ROOMS.length;
+    document.getElementById('statAvail').textContent = ROOMS.filter(function(r){var b=statusMeta(r.status).bucket; return b==='available'||b==='availableVip';}).length;
+
+    listEl.innerHTML='';
+    var summaryEl = document.querySelector('.summary');
+
+    if(!hasActiveQuery()){
+      state.lastSingleId = null;
+      summaryEl.style.display='none';
+      var prompt = el('div','empty',
+        '<svg width="42" height="42" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'+
+        '<h3>ค้นหาห้องที่ต้องการ</h3>'+
+        '<p>พิมพ์บ้านเลขที่ หรือเลขที่แปลงด้านบน<br>หรือแตะสถานะ/ตัวกรอง เพื่อดูรายการห้อง</p>'
+      );
+      var showAllBtn = el('button','link-btn', 'ดูห้องทั้งหมด ('+ROOMS.length+' ห้อง)');
+      showAllBtn.addEventListener('click', function(){ state.forceShow=true; render(); });
+      prompt.appendChild(showAllBtn);
+      listEl.style.display='block';
+      listEl.appendChild(prompt);
+      return;
+    }
+
+    var filtered = ROOMS.filter(matches);
+    var sorted = sortRooms(filtered);
+    document.getElementById('resultCount').textContent = sorted.length;
+    summaryEl.style.display='';
+
+    if(!sorted.length){
+      state.lastSingleId = null;
+      var e = el('div','empty',
+        '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'+
+        '<h3>ไม่พบห้องที่ตรงกัน</h3>'+
+        '<p>ลองพิมพ์คำค้นหาอื่น หรือปรับตัวกรองใหม่</p>'
+      );
+      var btn = el('button','btn-ghost-2', 'ล้างการค้นหาทั้งหมด');
+      btn.addEventListener('click', clearAll);
+      e.appendChild(btn);
+      listEl.style.display='block';
+      listEl.appendChild(e);
+      return;
+    }
+
+    if(sorted.length===1){
+      if(state.lastSingleId !== sorted[0].no){
+        state.openId = sorted[0].no;
+        state.lastSingleId = sorted[0].no;
+      }
+    } else {
+      state.lastSingleId = null;
+    }
+
+    listEl.style.display='';
+    sorted.forEach(function(r){ listEl.appendChild(cardHTML(r)); });
+  }
+
+  function applyAndRender(){ syncFilterDot(); render(); }
+
+  function clearAll(){
+    state.towers=[]; state.floors=[]; state.statuses=[]; state.types=[]; state.views=[]; state.dirs=[];
+    state.priceMin=PRICE_MIN; state.priceMax=PRICE_MAX; state.quick=null; state.q='';
+    state.forceShow=false; state.lastSingleId=null; state.openId=null;
+    document.getElementById('searchInput').value='';
+    document.getElementById('clearSearch').hidden = true;
+    renderQuickChips(); renderFilterSheet(); applyAndRender();
+  }
+
+  /* ---------- events ---------- */
+  var searchInputEl = document.getElementById('searchInput');
+  var clearSearchBtn = document.getElementById('clearSearch');
+  searchInputEl.addEventListener('input', function(e){
+    state.q = e.target.value;
+    clearSearchBtn.hidden = !state.q;
+    render();
+  });
+  clearSearchBtn.addEventListener('click', function(){
+    state.q=''; searchInputEl.value=''; clearSearchBtn.hidden=true; searchInputEl.focus(); render();
+  });
+  document.getElementById('sortSelect').addEventListener('change', function(e){
+    state.sort = e.target.value; render();
+  });
+
+  var scrim = document.getElementById('scrim');
+  var sheet = document.getElementById('filterSheet');
+  function openSheet(){
+    renderFilterSheet(); updateApplyCount();
+    scrim.dataset.show='true'; sheet.dataset.show='true';
+  }
+  function closeSheet(){ scrim.dataset.show='false'; sheet.dataset.show='false'; }
+  document.getElementById('openFilter').addEventListener('click', openSheet);
+  document.getElementById('closeFilter').addEventListener('click', closeSheet);
+  document.getElementById('applyFilter').addEventListener('click', function(){ state.forceShow=true; closeSheet(); applyAndRender(); });
+  document.getElementById('resetFilters').addEventListener('click', clearAll);
+  scrim.addEventListener('click', closeSheet);
+
+  renderQuickChips();
+  render();
+})();
+</script>
+
+</head>
+<body>
+</body>
+</html>
